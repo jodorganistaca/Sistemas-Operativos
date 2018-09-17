@@ -3,6 +3,8 @@
 #include<stdbool.h>
 #include<string.h>
 
+int countRecords = 0;
+
 struct dogType{
     char Name[32];
     char Type[32];
@@ -17,42 +19,51 @@ void loadDog(void *dog){
     struct dogType *newDog;
     malloc(sizeof(struct dogType));
     newDog = dog;
-    printf("Por favor ingrese los datos pedidos a continuación\n");
-    printf("ingrese nombre:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("Por favor ingrese los datos pedidos a continuación\n"
+           "ingrese nombre:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%s", newDog->Name);
-    char a[32];
-    memcpy(a,newDog->Name,32);
-    printf("%s\n",a);
-    printf("ingrese especie:\n");
-    printf("Cuando haya terminado presione enter\n");
+    //char a[32];
+    //memcpy(a,newDog->Name,32);
+    //printf("%s\n",a);
+    printf("ingrese especie:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%s", newDog->Type);
-    printf("ingrese edad:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("ingrese edad:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%i", &newDog->Age);
-    printf("ingrese raza:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("ingrese raza:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%s", newDog->breed);
-    printf("ingrese estatura:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("Ingrese estatura:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%i", &newDog->height);
-    printf("ingrese peso:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("Ingrese peso:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%f", &newDog->weight);
-    printf("ingrese genero:\n");
-    printf("Cuando haya terminado presione enter\n");
+    printf("ingrese genero:\n"
+           "Cuando haya terminado presione enter\n");
     scanf("%s", newDog->gender);
     printf("registro hecho\n");
+    countRecords++;
     preMenu();
 }
 
 void preMenu(){
     char c;
-    printf("Oprima cualquier tecla para volver al menu\n");
+    int p;
+    printf("Oprima cualquier tecla para volver al menu\n"
+           "seguida la tecla ENTER\n");
     do{
-        scanf("%s", c);
-    }while(c!=NULL);
+        char c2;
+        scanf("%s", &c);
+        p = (int)c;
+    }while(p<0||p>255);
     menu();
+}
+
+void seeRecord(){
+    printf("%d\n",&countRecords);
 }
 
 //Menu principal
@@ -66,8 +77,16 @@ void menu(){
     int option;
     do{
         scanf("%i",&option);
+        bool x=(option>5 || option < 1);
+        if(x){
+            printf("Por favor seleciona un numero de las sgtes opciones seguido de la tecla enter\n"
+           "1. Ingresar registro\n"
+           "2. Ver registro\n"
+           "3. Borrar registro\n"
+           "4. Buscar registro\n"
+           "5. Salir\n");
+        }
     }while(option>5 || option < 1);
-
     struct dogType *newPet;
     switch(option){
         case 1:
@@ -75,20 +94,21 @@ void menu(){
             loadDog(newPet);
             break;
         case 2:
-            //seeRecord();
+            seeRecord();
             break;
         case 3:
             break;
         case 4:
             break;
         case 5:
+            return;
             break;
     };
 
 }
 
 int main(){
-    menu();
+   menu();
 
     /*struct dogType *perri;
     perri = malloc(sizeof(struct dogType));
