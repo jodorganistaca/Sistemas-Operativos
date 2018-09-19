@@ -123,7 +123,7 @@ void preMenu(){
     menu();
 }
 
-//Menu principal
+//Menu principal last
 void menu(){
     printf("Por favor seleciona un numero de las sgtes opciones seguido de la tecla enter\n"
            "1. Ingresar registro\n"
@@ -196,4 +196,5 @@ int main(){
         perror("Error en fclose");
         exit(-1);
     }*/
+    return 0;
 }
