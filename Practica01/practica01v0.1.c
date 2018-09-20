@@ -39,6 +39,7 @@ int hash_function(char a[32]){
   }
   return hash;
 }
+
 struct node* get_element(struct node *list, int find_index);
 void deleteRecord(int key);
 void rehash();
@@ -75,20 +76,22 @@ void loadDog(void *dog){
     memcpy(prueba,newDog->Name,32);
     struct dogType *start;
     struct dogType *pointer;
-    int adress = hash_function(n);
-    if(hash_table[adress]==NULL){
-      hash_table[adress] = malloc(sizeof(struct dogType));
-      hash_table[adress] =newDog;
-      hash_table[adress]->next=NULL;
-    } else {
-      pointer=hash_table[adress];
+    int address = hash_function(n);
+    if(hash_table[address]==NULL){
+        printf("entro al null\n");
+        hash_table[address] = malloc(sizeof(struct dogType));
+        hash_table[address] = newDog;
+        hash_table[address]->next=NULL;
+    }else {
+      printf("no es null\n");
+      pointer=hash_table[address];
       while (pointer->next != NULL) {
+        printf("+1\n");
         pointer = pointer->next;
       }
       pointer->next = malloc (sizeof(struct dogType));
-      pointer = newDog;
-      pointer = pointer->next;
-      pointer->next = NULL;
+      pointer->next = newDog;
+      /*pointer->next = NULL;*/
     }
     printf("registro hecho\n");
     countRecords++;
@@ -99,15 +102,57 @@ void seeRecord(){
     printf("Cantidad de registros:\t"
            "%d\n",countRecords);
     printf("Por favor ingrese el numero de registro a ver\n");
+    int record;
+    scanf("%i",&record);
+    if(hash_table[record]==NULL){
+        printf("paila no hay nothing\n");
+    }else{
+        system("gedit dataDogs.dat");
+        printf("hay algo\n");
+        char n[32];
+        char t[32];
+        memcpy(n,hash_table[record]->Name,32);
+        memcpy(t,hash_table[record]->Type,32);
+
+        printf("nombre:  %s\n",n);
+        printf("tipo: %s\n",t);
+        printf("Edad: %i\n",hash_table[record]->Age);
+        struct dogType *dogNext;
+        if(hash_table[record]->next!=NULL){
+            dogNext = hash_table[record]->next;
+            printf("hay algo despues del next\n");
+            char n2[32];
+            char t2[32];
+            memcpy(n2,dogNext->Name,32);
+            memcpy(t2,dogNext->Type,32);
+            printf("nombre:  %s\n",n2);
+            printf("tipo: %s\n",t2);
+            printf("Edad: %i\n",dogNext->Age);
+        }
+    }
     preMenu();
 }
 
 void deleteRecord(int key){
+    printf("Cantidad de registros:\t"
+           "%d\n",countRecords);
+    printf("Por favor ingrese el numero de registro a borrar\n");
+    int record;
+    scanf("%i",&record);
     preMenu();
 }
 
 void searchRecord(){
-
+    char n[32];
+    printf("%s\n",prueba);
+    printf("%d\n",hash_function(prueba));
+    printf("Por favor digite el nombre de su mascota\n"
+           "Seguida la tecla ENTER\n");
+    scanf("%s",n);
+    int addres = hash_function(n);
+    printf("%s\n",n);
+    printf("%i\n",addres);
+    preMenu();
 }
 
 void preMenu(){
@@ -123,7 +168,7 @@ void preMenu(){
     menu();
 }
 
-//Menu principal last
+//Menu principal
 void menu(){
     printf("Por favor seleciona un numero de las sgtes opciones seguido de la tecla enter\n"
            "1. Ingresar registro\n"
@@ -148,11 +193,23 @@ void menu(){
     switch(option){
         case 1:
             newPet = malloc(sizeof(struct dogType));
+            //memset(newPet->Name,' ',sizeof(struct dogType)-(sizeof(int)+sizeof(int)+sizeof(float)+sizeof(81)));
             loadDog(newPet);
-            int adress = hash_function(prueba);
-            char n[32];
-            memcpy(n,hash_table[adress]->Name,32);
-            printf("prueba:  %s\n",n);
+            FILE *file = fopen("dataDogs.dat","w+");
+            if(file == NULL){
+                perror("error fopen");
+                exit(-1);
+            }
+            int t = fwrite(newPet,sizeof(struct dogType),1,file);
+            if(t == 0){
+                perror("Error en fwrite");
+                exit(-1);
+            }
+            int c = fclose(file);
+            if(c!=0){
+                perror("Error en fclose");
+                exit(-1);
+            }
             break;
         case 2:
             seeRecord();
@@ -160,6 +217,7 @@ void menu(){
         case 3:
             break;
         case 4:
+            searchRecord();
             break;
         case 5:
             return;
@@ -169,32 +227,6 @@ void menu(){
 }
 
 int main(){
-   menu();
-    /*struct dogType *perri;
-    perri = malloc(sizeof(struct dogType));
-    memset(perri->Name,' ',sizeof(struct dogType)-(sizeof(int)+sizeof(int)+sizeof(float)+sizeof(81)));
-
-    if(perri==NULL){
-        perror("Error en el malloc");
-        exit(-1);
-    }
-
-    loadDog(perri);
-    FILE *file = fopen("dataDogs.dat", "w");
-    if(file == NULL){
-        perror("error fopen");
-        exit(-1);
-    }
-
-    int t = fwrite(perri, sizeof(struct dogType), 1,file);
-    if(t==0){
-        perror("Error en fwrite");
-        exit(-1);
-    }
-    int c = fclose(file);
-    if(c != 0){
-        perror("Error en fclose");
-        exit(-1);
-    }*/
+    menu();
     return 0;
 }
