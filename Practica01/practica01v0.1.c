@@ -5,6 +5,7 @@
 #define max 1000
 
 struct dogType{
+    struct pair_int *record;
     char Name[32];
     char Type[32];
     int Age;
@@ -15,18 +16,11 @@ struct dogType{
     struct dogType *next;
 };
 
-struct node{
-    int key;
-    struct dogType *value;
-    struct node *next;
+struct pair_int{
+    int first;
+    int second;
 };
 
-struct arrayitem{
-    struct node *head;
-    struct node *tail;
-};
-
-struct arrayitem *array;
 int countRecords = 0;
 struct dogType *hash_table[max];
 struct dogType *next=NULL;
@@ -41,10 +35,6 @@ int hash_function(char a[32]){
   printf("\n");
   return hash;
 }
-
-struct node* get_element(struct node *list, int find_index);
-void rehash();
-void init_array();
 
 void loadDog(void *dog){
     struct dogType *newDog;
@@ -78,20 +68,29 @@ void loadDog(void *dog){
     struct dogType *start;
     struct dogType *pointer;
     int address = hash_function(n);
+    int addressSec = 0;
     if(hash_table[address]==NULL){
         printf("entro al null\n");
         hash_table[address] = malloc(sizeof(struct dogType));
         hash_table[address] = newDog;
         hash_table[address]->next=NULL;
+        newDog->record = malloc(sizeof(struct pair_int));
+        newDog->record->first = address;
+        newDog->record->second = addressSec;
     }else {
       printf("no es null\n");
       pointer=hash_table[address];
+      addressSec+=1;
       while (pointer->next != NULL) {
         printf("+1\n");
         pointer = pointer->next;
+        addressSec+=1;
       }
       pointer->next = malloc (sizeof(struct dogType));
       pointer->next = newDog;
+      newDog->record = malloc(sizeof(struct pair_int));
+      newDog->record->first = address;
+      newDog->record->second = addressSec;
       /*pointer->next = NULL;*/
     }
     printf("registro hecho\n");
@@ -114,10 +113,11 @@ void seeRecord(){
         char t[32];
         memcpy(n,hash_table[record]->Name,32);
         memcpy(t,hash_table[record]->Type,32);
-
         printf("nombre:  %s\n",n);
         printf("tipo: %s\n",t);
         printf("Edad: %i\n",hash_table[record]->Age);
+        printf("Record: %i\n",hash_table[record]->record->first);
+        printf("Record: %i\n",hash_table[record]->record->second);
         struct dogType *dogNext;
         if(hash_table[record]->next!=NULL){
             dogNext = hash_table[record]->next;
@@ -129,6 +129,8 @@ void seeRecord(){
             printf("nombre:  %s\n",n2);
             printf("tipo: %s\n",t2);
             printf("Edad: %i\n",dogNext->Age);
+            printf("Record: %i\n",dogNext->record->first);
+            printf("Record: %i\n",dogNext->record->second);
         }
     }
     preMenu();
