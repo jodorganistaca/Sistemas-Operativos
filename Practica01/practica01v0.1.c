@@ -35,13 +35,14 @@ char prueba[32];
 int hash_function(char a[32]){
   int hash = 0;
   for (int i = 0; i < 32; i++) {
+    printf("%i\t",a[i]);
     hash = (31 * hash + a[i])%max;
   }
+  printf("\n");
   return hash;
 }
 
 struct node* get_element(struct node *list, int find_index);
-void deleteRecord(int key);
 void rehash();
 void init_array();
 
@@ -133,7 +134,7 @@ void seeRecord(){
     preMenu();
 }
 
-void deleteRecord(int key){
+void deleteRecord(){
     printf("Cantidad de registros:\t"
            "%d\n",countRecords);
     printf("Por favor ingrese el numero de registro a borrar\n");
@@ -148,6 +149,7 @@ void searchRecord(){
     printf("%d\n",hash_function(prueba));
     printf("Por favor digite el nombre de su mascota\n"
            "Seguida la tecla ENTER\n");
+    memset(n,0,32);
     scanf("%s",n);
     int addres = hash_function(n);
     printf("%s\n",n);
@@ -215,6 +217,7 @@ void menu(){
             seeRecord();
             break;
         case 3:
+            deleteRecord();
             break;
         case 4:
             searchRecord();
