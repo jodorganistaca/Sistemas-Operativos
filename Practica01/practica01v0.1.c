@@ -29,7 +29,7 @@ char prueba[32];
 int hash_function(char a[32]){
   int hash = 0;
   for (int i = 0; i < 32; i++) {
-    printf("%i\t",a[i]);
+    //printf("%i\t",a[i]);
     if(a[i]>=65&&a[i]<=90){
         a[i]+=32;
     }
@@ -110,7 +110,7 @@ void seeRecord(){
     int record;
     scanf("%i",&record);
     if(hash_table[record]==NULL){
-        printf("paila no hay nothing\n");
+        printf("No hay registros\n");
     }else{
         system("gedit dataDogs.dat");
         printf("hay algo\n");
@@ -152,16 +152,32 @@ void deleteRecord(){
 
 void searchRecord(){
     char n[32];
-    printf("%s\n",prueba);
-    printf("%d\n",hash_function(prueba));
     printf("Por favor digite el nombre de su mascota\n"
            "Seguida la tecla ENTER\n");
     memset(n,32,32);
     scanf("%s",n);
     int addres = hash_function(n);
-    printf("%s\n",n);
     printf("%i\n",addres);
+    struct dogType *pointer = hash_table[addres];
+    printRecord(pointer);
+    while (pointer->next != NULL) {
+        pointer = pointer->next;
+        printRecord(pointer);
+    }
     preMenu();
+}
+
+void printRecord(struct dogType *dog){
+    printf("------------------------\n");
+    printf("Registro: %i %i\n", dog->record->first,dog->record->second);
+    printf("Nombre: %s\n",dog->Name);
+    printf("Tipo: %s\n", dog->Type);
+    printf("Edad: %i años\n", dog->Age);
+    printf("Raza: %s\n", dog->breed);
+    printf("Estatura: %i cm\n", dog->height);
+    printf("Peso: %3f Kg\n", dog->weight);
+    printf("Sexo: %s\n", dog->gender);
+    printf("------------------------\n");
 }
 
 void preMenu(){
