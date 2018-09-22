@@ -30,19 +30,22 @@ int hash_function(char a[32]){
   int hash = 0;
   for (int i = 0; i < 32; i++) {
     printf("%i\t",a[i]);
+    if(a[i]>=65&&a[i]<=90){
+        a[i]+=32;
+    }
     hash = (31 * hash + a[i])%max;
   }
   printf("\n");
   return hash;
 }
 
-void loadDog(void *dog){
-    struct dogType *newDog;
-    malloc(sizeof(struct dogType));
-    newDog = dog;
+struct dogType *createDog(){
+  struct dogType *newDog = malloc(sizeof(struct dogType));
+  if (newDog!=NULL) {
     printf("Por favor ingrese los datos pedidos a continuación\n"
            "ingrese nombre:\n"
            "Cuando haya terminado presione enter\n");
+    memset(newDog->Name,32,32);
     scanf("%s", newDog->Name);
     printf("ingrese especie:\n"
            "Cuando haya terminado presione enter\n");
@@ -62,18 +65,22 @@ void loadDog(void *dog){
     printf("ingrese genero:\n"
            "Cuando haya terminado presione enter\n");
     scanf("%s", newDog->gender);
+    newDog->next=NULL;
+  }
+  return newDog;
+}
+
+void loadDog(void *dog){
+    struct dogType *newDog = dog;
     char n[32];
     memcpy(n,newDog->Name,32);
     memcpy(prueba,newDog->Name,32);
-    struct dogType *start;
-    struct dogType *pointer;
     int address = hash_function(n);
+    struct dogType *pointer = hash_table[address];
     int addressSec = 0;
-    if(hash_table[address]==NULL){
+    if(pointer==NULL){
         printf("entro al null\n");
-        hash_table[address] = malloc(sizeof(struct dogType));
         hash_table[address] = newDog;
-        hash_table[address]->next=NULL;
         newDog->record = malloc(sizeof(struct pair_int));
         newDog->record->first = address;
         newDog->record->second = addressSec;
@@ -82,7 +89,6 @@ void loadDog(void *dog){
       pointer=hash_table[address];
       addressSec+=1;
       while (pointer->next != NULL) {
-        printf("+1\n");
         pointer = pointer->next;
         addressSec+=1;
       }
@@ -91,7 +97,6 @@ void loadDog(void *dog){
       newDog->record = malloc(sizeof(struct pair_int));
       newDog->record->first = address;
       newDog->record->second = addressSec;
-      /*pointer->next = NULL;*/
     }
     printf("registro hecho\n");
     countRecords++;
@@ -151,7 +156,7 @@ void searchRecord(){
     printf("%d\n",hash_function(prueba));
     printf("Por favor digite el nombre de su mascota\n"
            "Seguida la tecla ENTER\n");
-    memset(n,0,32);
+    memset(n,32,32);
     scanf("%s",n);
     int addres = hash_function(n);
     printf("%s\n",n);
@@ -196,7 +201,7 @@ void menu(){
     struct dogType *newPet;
     switch(option){
         case 1:
-            newPet = malloc(sizeof(struct dogType));
+            newPet = createDog();
             //memset(newPet->Name,' ',sizeof(struct dogType)-(sizeof(int)+sizeof(int)+sizeof(float)+sizeof(81)));
             loadDog(newPet);
             FILE *file = fopen("dataDogs.dat","w+");
