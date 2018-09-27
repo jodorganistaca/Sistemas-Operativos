@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<stdbool.h>
 #include<string.h>
+#include "randomStruct.c"
 #define max 1000
 
 struct dogType{
@@ -106,41 +107,30 @@ void loadDog(void *dog){
 void seeRecord(){
     printf("Cantidad de registros:\t"
            "%d\n",countRecords);
-    printf("Por favor ingrese el numero de registro a ver\n");
+    printf("Por favor ingrese la dirección 1 de registro a ver\n");
     int record;
     scanf("%i",&record);
-    if(hash_table[record]==NULL){
-        printf("No hay registros\n");
+    printf("Por favor ingrese la dirección 2 de registro a ver\n");
+    int record2;
+    struct dogType *pointer = hash_table[record];
+    scanf("%i",&record2);
+    if(pointer==NULL){
+        printf("paila no hay nothing\n");
     }else{
-        system("gedit dataDogs.dat");
-        printf("hay algo\n");
-        char n[32];
-        char t[32];
-        memcpy(n,hash_table[record]->Name,32);
-        memcpy(t,hash_table[record]->Type,32);
-        printf("nombre:  %s\n",n);
-        printf("tipo: %s\n",t);
-        printf("Edad: %i\n",hash_table[record]->Age);
-        printf("Record: %i\n",hash_table[record]->record->first);
-        printf("Record: %i\n",hash_table[record]->record->second);
-        struct dogType *dogNext;
-        if(hash_table[record]->next!=NULL){
-            dogNext = hash_table[record]->next;
-            printf("hay algo despues del next\n");
-            char n2[32];
-            char t2[32];
-            memcpy(n2,dogNext->Name,32);
-            memcpy(t2,dogNext->Type,32);
-            printf("nombre:  %s\n",n2);
-            printf("tipo: %s\n",t2);
-            printf("Edad: %i\n",dogNext->Age);
-            printf("Record: %i\n",dogNext->record->first);
-            printf("Record: %i\n",dogNext->record->second);
+        int pos=0;
+        while (pointer->next!=NULL && pos!=record2) {
+          pointer=pointer->next;
+          pos++;
+        }
+        if (pos==record2) {
+          system("gedit dataDogs.dat");
+          printRecord(pointer);
+        }else{
+          printf("Registro no existente\n");
         }
     }
     preMenu();
 }
-
 void deleteRecord(){
     printf("Cantidad de registros:\t"
            "%d\n",countRecords);
@@ -253,6 +243,14 @@ void menu(){
 }
 
 int main(){
-    menu();
+    //menu();
+    int r,h;
+    scanf("%i",&h);
+    do{
+        r = randAge();
+        printf("%i\n",r);
+        scanf("%i",&h);
+    }while(h != 0);
+
     return 0;
 }
