@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #define prime 1009
 
 int hash_function(char a[32]){
@@ -18,7 +19,6 @@ int hash_function(char a[32]){
 int main(){
     int i;
     FILE *fileR = fopen("names.txt","r");
-    FILE *fileW = fopen("namesIds.txt","w");
     char line[256];
     char *names[1000];
     for(i = 0; i<1000;i++){
@@ -29,12 +29,16 @@ int main(){
         strtok(line, "\n");
         /*printf("%s\n",line);*/
         strcpy(names[i],line);
+        printf("%i\n",hash_function(names[i]));
         i+=1;
     }
-    for(i = 0; i<1000;i++){
-        printf("%i\n",hash_function(names[i]));
-        fwrite(hash_function(names[i]),sizeof(int),1,fileW);
-        fwrite('\n',sizeof(char),1,fileW);
-    }
     fclose(fileR);
+    FILE *fileW = fopen("namesIds.txt","w");
+    for(i = 0; i<1000;i++){
+        int id = hash_function(names[i]);
+        char *idN[10] = ;
+        fwrite(id,sizeof(int),1,fileW);
+        //fwrite('\n',sizeof(char),1,fileW);
+    }
+    fclose(fileW);
 }
