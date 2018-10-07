@@ -31,22 +31,25 @@ int main(){
 		arrId[i] = 0;
 	}
     i =0;//reinicio el contador
+	int id;//el hash por cada nombre
     while(fgets(line, sizeof(line)-1,fileR)){//Mientras lea el archivo de nombres
         strtok(line, "\n"); //Los separa hasta que haya un salto de linea
         strcpy(names[i],line);//copia lo que esta en la linea y lo copia en el arreglo de punteros
+		id = hash_function(names[i]);
         //printf("%i\n",hash_function(names[i]));//muestra en consola los id de cada nombre
-        arrId[hash_function(names[i])]++;//aumenta el contador en la pos del hash
+        arrId[id]++;//aumenta el contador en la pos del hash
+		//printf("%i %i\n",id,arrId[id]);
         i+=1;//aumenta contador
     }
     fclose(fileR);//Cierra archivo de lectura
     FILE *fileW = fopen("namesIds.txt","w");//Abrimos un archivo de escritura para los nombres y ids
     FILE *fileW2 = fopen("freeIds.txt","w");//Abrimos un archivo de escritura solo los ids libres
     for(i = 0; i<1000;i++){
-        int id = hash_function(names[i]);
-        fprintf(fileW, " %d %s \n", id, names[i]);
-        if(arrId[id]<=0){//Si el arrId esta en 0 significa que no esta escrito una mascota en esta posicion
-			fprintf(fileW2,"%i\t",id);
+        id = hash_function(names[i]);
+		if(arrId[i]==0){//Si el arrId esta en 0 significa que no esta escrito una mascota en esta posicion
+			fprintf(fileW2,"%i\n",i);//escribimos en el archivo W2 los ids libres
         }
+        fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre        
     }
     fclose(fileW);
 	fclose(fileW2);
