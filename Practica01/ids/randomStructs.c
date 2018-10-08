@@ -169,7 +169,7 @@ int rehash(FILE *T1,FILE *T3,FILE *T4){
 	T4 = fopen("namesPosIds.txt","r");
 	fseek(T4, 0L,SEEK_END);
 	int x = ftell(T4)/sizeof(int);
-	printf("%i\n",x);
+	//printf("%i\n",x);
 	fseek(T4, 0L,SEEK_SET);
 	for(int i=0; i<x; i++){
 		//return T2() =
@@ -183,15 +183,14 @@ void init(){
 	int i;
     FILE *fileR = fopen("names.txt","r");//Abre el archivo en modo lectura
 	FILE *fileW = fopen("namesIds.txt","w");//Abrimos un archivo de escritura para los nombres y ids
-    FILE *fileW2 = fopen("freeIds.txt","w");//Abrimos un archivo de escritura solo los ids libres
-	FILE *fileW3 = fopen("namesPosIds.txt","w");//Abrimos un archivo de escritura solo con los id de fileW repetidos
+    FILE *fileW2 = fopen("freeIds.dat","w");//Abrimos un archivo de escritura solo los ids libres
+	FILE *fileW3 = fopen("namesPosIds.dat","w");//Abrimos un archivo de escritura solo con los id de fileW repetidos
     char line[256]; //buffer de tamaño 256 para leer la linea de el archivo
-    char *freeId[10];//arreglo de tamaño 10 de punteros para los ids libres
     int arrId[1010];//arreglo para saber que pos estan libres
     for(i = 0; i<maxN;i++){//Reservo espacio para cada puntero e inicializo los arrId
         names[i] = malloc( 32 * sizeof(char));
         arrId[i] = 0;
-        //freeId[i] = malloc( 10 * sizeof(char));
+		ids[i] = -1;
     }
 	for(;i<1010;i++){//Inicializo los arrId restantes en 0
 		arrId[i] = 0;
@@ -205,23 +204,27 @@ void init(){
         //printf("%i\n",hash_function(names[i]));//muestra en consola los id de cada nombre
         arrId[id]++;//aumenta el contador en la pos del hash		
 		//printf("%i %i\n",id,arrId[id]);
-        i+=1;//aumenta contador
+		ids[i]=id;        
+		i+=1;//aumenta contador
 		if(arrId[id]>1){//quiere decir que ya hay un nombre con es id
-			fprintf(fileW3,"%i\n",i);	
+			fprintf(fileW3,"%i\n",i);
+			ids[id]=-1;
 		}
+		
     }
 	fclose(fileW3);//Cierra el archivo namesPosIds
     fclose(fileR);//Cierra archivo de lectura    
-	FILE *fW3 = fopen("namesPosIds.txt","r");
+	FILE *fW3 = fopen("namesPosIds.dat","r");
+	fseek(fW3,0L,SEEK_SET);
 	int r;
+    char *freeId;
     for(i = 0; i<1005;i++){
         id = hash_function(names[i]);		
 		if(arrId[i]==0){//Si el arrId esta en 0 significa que no esta escrito una mascota en esta posicion
 			fprintf(fileW2,"%i\n",i);//escribimos en el archivo W2 los ids libres
-			fread(&r,sizeof(int),1,fW3);
-			ids[i] = r;
 		}		
-        fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre        
+        fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre  
+		      
     }		
     fclose(fileW);
 	fclose(fileW2);
@@ -287,8 +290,6 @@ int equals(char petName[], char petName2[]){
 	return 1;
 }
 
-
-
 void randomStruct(){
 	struct dogType* pet=malloc(sizeof(struct dogType));
 	//se meten los datos en el archivo
@@ -300,7 +301,6 @@ void randomStruct(){
 	printf("%i\n",x);
 	fclose(T3);
 	fclose(T4);
-//	for(;i<)
 	for(;i<maxN;i++){
 		strcpy(pet->Name,randName());
         strcpy(pet->Type,randType());
@@ -314,7 +314,6 @@ void randomStruct(){
 	printf("Archivo de prueba generado exitosamente.\n");
 }
 
-/*
 void printRecord(struct dogType *dog){
     printf("------------------------\n");
    // printf("Registro: %i %i\n", dog->record->first,dog->record->second);
@@ -328,11 +327,10 @@ void printRecord(struct dogType *dog){
     printf("Sexo: %c\n", dog->gender);
     printf("------------------------\n");
 }
-*/
 
 int main(){
 	init();
-	for(int i = 0; i<1005;i++){
+	for(int i = 0; i<maxN;i++){
 		printf("%i\n",ids[i]);
 	}
     //randomStruct();
