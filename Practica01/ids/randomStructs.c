@@ -284,11 +284,18 @@ int equals(char petName[], char petName2[]){
 
 
 void randomStruct(){
-    //fillName();//inicializa names*[max]
 	struct dogType* pet=malloc(sizeof(struct dogType));
 	//se meten los datos en el archivo
-	for(int i=0;i<1000;i++){
-		int randindex = rand()%1000;
+	int i=0;
+	FILE *T3 = fopen("freeIds.txt","r");
+	FILE *T4 = fopen("namesPosIds.txt","r");
+	fseek(T4, 0L,SEEK_END);
+	int x = ftell(T4)/sizeof(int);
+	printf("%i\n",x);
+	fclose(T3);
+	fclose(T4);
+//	for(;i<)
+	for(;i<maxN;i++){
 		strcpy(pet->Name,randName());
         strcpy(pet->Type,randType());
         pet->Age = randAge();
