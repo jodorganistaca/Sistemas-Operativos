@@ -24,6 +24,7 @@ struct dogType{
 struct dogType *hash_table[MAX];
 
 char *names[maxN];//arreglo de tamaño 1005 de punteros para los nombres
+int ids[maxN];
 
 char *types[] = {"perro","gato","tortuga","conejo",
 "elefante","Caballo","gallina","hamster","vaca",
@@ -206,20 +207,25 @@ void init(){
 		//printf("%i %i\n",id,arrId[id]);
         i+=1;//aumenta contador
 		if(arrId[id]>1){//quiere decir que ya hay un nombre con es id
-			fprintf(fileW3,"%i\n",i);		
+			fprintf(fileW3,"%i\n",i);	
 		}
     }
+	fclose(fileW3);//Cierra el archivo namesPosIds
     fclose(fileR);//Cierra archivo de lectura    
+	FILE *fW3 = fopen("namesPosIds.txt","r");
+	int r;
     for(i = 0; i<1005;i++){
         id = hash_function(names[i]);		
 		if(arrId[i]==0){//Si el arrId esta en 0 significa que no esta escrito una mascota en esta posicion
 			fprintf(fileW2,"%i\n",i);//escribimos en el archivo W2 los ids libres
+			fread(&r,sizeof(int),1,fW3);
+			ids[i] = r;
 		}		
         fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre        
     }		
     fclose(fileW);
 	fclose(fileW2);
-	fclose(fileW3);
+	fclose(fW3);
 	rehash(fileW,fileW2,fileW3);	
 }
 
@@ -326,6 +332,9 @@ void printRecord(struct dogType *dog){
 
 int main(){
 	init();
+	for(int i = 0; i<1005;i++){
+		printf("%i\n",ids[i]);
+	}
     //randomStruct();
     return 0;
 }
