@@ -180,17 +180,19 @@ int rehash(FILE *T1,FILE *T3,FILE *T4){
 }
 
 void init(){
-	int i;
+	int i,j = 0;
     FILE *fileR = fopen("names.txt","r");//Abre el archivo en modo lectura
 	FILE *fileW = fopen("namesIds.txt","w");//Abrimos un archivo de escritura para los nombres y ids
     FILE *fileW2 = fopen("freeIds.dat","w");//Abrimos un archivo de escritura solo los ids libres
 	FILE *fileW3 = fopen("namesPosIds.dat","w");//Abrimos un archivo de escritura solo con los id de fileW repetidos
     char line[256]; //buffer de tamaño 256 para leer la linea de el archivo
     int arrId[1010];//arreglo para saber que pos estan libres
+	int rep[maxN];
     for(i = 0; i<maxN;i++){//Reservo espacio para cada puntero e inicializo los arrId
         names[i] = malloc( 32 * sizeof(char));
         arrId[i] = 0;
 		ids[i] = -1;
+		rep[i] = -1;
     }
 	for(;i<1010;i++){//Inicializo los arrId restantes en 0
 		arrId[i] = 0;
@@ -205,12 +207,13 @@ void init(){
         arrId[id]++;//aumenta el contador en la pos del hash		
 		//printf("%i %i\n",id,arrId[id]);
 		ids[i]=id;        
-		i+=1;//aumenta contador
 		if(arrId[id]>1){//quiere decir que ya hay un nombre con es id
 			fprintf(fileW3,"%i\n",i);
 			ids[id]=-1;
+			rep[j]=i;
+			j++;
 		}
-		
+		i+=1;//aumenta contador
     }
 	fclose(fileW3);//Cierra el archivo namesPosIds
     fclose(fileR);//Cierra archivo de lectura    
@@ -219,9 +222,15 @@ void init(){
 	int r;
     char *freeId;
     for(i = 0; i<1005;i++){
-        id = hash_function(names[i]);		
+        id = hash_function(names[i]);				
 		if(arrId[i]==0){//Si el arrId esta en 0 significa que no esta escrito una mascota en esta posicion
 			fprintf(fileW2,"%i\n",i);//escribimos en el archivo W2 los ids libres
+			if(rep[i]==-1){//quiere decir que ya acabo de leer los repetidos 
+			
+			}else{
+				ids[rep[i]] = i;
+				printf("%i %i %i\n",i,ids[i],rep[i]);
+			}
 		}		
         fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre  
 		      
@@ -229,7 +238,10 @@ void init(){
     fclose(fileW);
 	fclose(fileW2);
 	fclose(fW3);
-	rehash(fileW,fileW2,fileW3);	
+	//rehash(fileW,fileW2,fileW3);	
+	/*for(j = 0; j<maxN;j++){		
+		printf("%i\n",ids[j]);
+	}*/
 }
 
 int randNum(int lower, int upper){
@@ -330,9 +342,12 @@ void printRecord(struct dogType *dog){
 
 int main(){
 	init();
+	/*printf("--------");
 	for(int i = 0; i<maxN;i++){
 		printf("%i\n",ids[i]);
 	}
+	printf("--------");*/
+	
     //randomStruct();
     return 0;
 }
