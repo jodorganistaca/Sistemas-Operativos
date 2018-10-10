@@ -50,6 +50,7 @@ void printRecord(struct dogType *dog){
 struct dogType *hash_table[MAX];
 
 char *names[maxN];//arreglo de tamaño 1005 de punteros para los nombres
+char *namesRes[maxN];//arreglo de nombres restantes
 int ids[maxN];
 
 char *types[] = {"perro","gato","tortuga","conejo",
@@ -62,12 +63,19 @@ char *breed[] = {"Akita","Azawakh","Basenji","Beagle","Bulldog",
 "Harrier","Husky", "Kishu","Komondor","Labrador","Landseer",
 "Lebrel","Leonberger","Mudi","Pumi",};
 
+void preMenu(){
+    printf("Oprima [Enter] para Ingresar\n");
+    fflush(stdin);
+	getchar();
+}
+
 void writeTable(int pos, struct dogType *pet){
 	pet->next=pos+1000;
 	printRecord(pet);
     long int wr=0;
     int tam;
     int ingre;
+	preMenu();
     FILE *files2=fopen("dataDogs.dat","rb");
     if(files2==NULL){
         printf("Error abriendo archivo dataDogs.dat.\n");
@@ -249,6 +257,7 @@ void init(){
 		ids[i]=id;        
 		if(arrId[id]>1){//quiere decir que ya hay un nombre con ese id
 			fprintf(fileW3,"%s\n",names[i]);
+			namesRes[j] = names[i];
 			ids[i]=-1;
 			rep[j]=i;
 			j++;
@@ -334,8 +343,8 @@ int equals(char petName[], char petName2[]){
 void randomStruct(){
 	struct dogType* pet=malloc(sizeof(struct dogType));
 	//se meten los datos en el archivo
-	int i=0,idF;
-	for(;i<10;i++){
+	int i=10,idF;
+	for(;i<1000;i++){
 		strcpy(pet->Name,names[i]);
         strcpy(pet->Type,randType());
         pet->Age = randAge();
