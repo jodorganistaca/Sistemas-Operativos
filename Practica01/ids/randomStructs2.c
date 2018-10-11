@@ -64,23 +64,24 @@ char *breed[] = {"Akita","Azawakh","Basenji","Beagle","Bulldog",
 "Lebrel","Leonberger","Mudi","Pumi",};
 
 void preMenu(){
-    printf("Oprima [Enter] para Ingresar\n");
+    printf("Oprima [Enter] para Continuar\n");
     fflush(stdin);
 	getchar();
 }
 
 void writeTable(int pos, struct dogType *pet){
-	pet->next=pos+1000;
-	printRecord(pet);
+	pet->next=pos+1000;	
     long int wr=0;
     int tam;
     int ingre;
-	preMenu();
+	
     FILE *files2=fopen("dataDogs.dat","rb");
     if(files2==NULL){
         printf("Error abriendo archivo dataDogs.dat.\n");
-    }else{
+    }else{		
 		fseek(files2, 0L,SEEK_END);
+		printf("paso fseek END\n");
+		preMenu();
 		wr=ftell(files2);
 		fseek(files2,0L,SEEK_SET);
 		fread(&ingre,sizeof(int),1,files2);
@@ -90,12 +91,13 @@ void writeTable(int pos, struct dogType *pet){
 		printf("tam leido %li\n",wr);
   	}
     FILE *files=fopen("dataTemp.dat","wb+");
-    if(files==NULL){
+	if(files==NULL){
         printf("Error abriendo archivo dataTemp.dat.\n");
         return;
-    }else{
+    }else{	
+		printf("creo DataTemp de escritura lectura\n");
+		preMenu();	
         struct dogType *temp;
-        //fseek(files,wr,SEEK_SET);
         int tam = (int)(((wr-sizeof(int))/sizeof(struct dogType)));
         printf("tam leido %li\n",wr);
         printf("cantidad estructuras%i \n",tam);
@@ -103,6 +105,7 @@ void writeTable(int pos, struct dogType *pet){
             ///recorremos el archivo hasta la posicion y lo llenamos de estructuras Null
             printf("Entro a tam<=0\n");
             fseek(files,0L,SEEK_SET);
+			preMenu();
             int f=1;
             fwrite(&f,sizeof(int),1,files);
             temp = malloc(sizeof(struct dogType));
@@ -112,12 +115,13 @@ void writeTable(int pos, struct dogType *pet){
                 temp->existe = 0;
                 fwrite(temp,sizeof(struct dogType),1,files);
             }
-
             fwrite(pet,sizeof(struct dogType),1,files);
             fclose(files);
             rename("dataTemp.dat","dataDogs.dat");
             printf("OK\n");
+			printRecord(pet);
             free(temp);
+			free(pet);
         }else{
             if(pos>tam){///ingresa un registro dependiendo la poscion
                         ///en este caso mayor al tam del file actual
@@ -127,18 +131,19 @@ void writeTable(int pos, struct dogType *pet){
                 fwrite(&ingre,sizeof(int),1,files);
                 temp = malloc(sizeof(struct dogType));
                 for (int i = 1; i <= tam; i++) {
-                  fread(temp,sizeof(struct dogType),1,files2);
-                  fwrite(temp,sizeof(struct dogType),1,files);
+					fread(temp,sizeof(struct dogType),1,files2);
+					fwrite(temp,sizeof(struct dogType),1,files);
                 }
 
                 printf("Entro a pos>tam\n");
                 printf("Leyo %i estructuras ingresadas\n", ingre);
+				preMenu();
                 for(int rec = tam+1; rec < pos; rec++){//recorremos el archivo files escribiendo ahora en filesNew
                   //Escribimos los nulls nuevos
-                        temp->id = rec;
-                        temp->next = pos;
-                        temp->existe = 0;
-                        fwrite(temp,sizeof(struct dogType),1,files);
+                    temp->id = rec;
+                    temp->next = pos;
+                    temp->existe = 0;
+                    fwrite(temp,sizeof(struct dogType),1,files);
                 }
                 // //Escribimos en la posicion la mascota ingresada/borramos el archivo viejo y renombramos el nuevo
 
@@ -147,39 +152,41 @@ void writeTable(int pos, struct dogType *pet){
                 fclose(files);
                 remove("dataDogs.dat");
                 rename("dataTemp.dat","dataDogs.dat");
+				printRecord(pet);
                 free(temp);
                 free(pet);
             }else{
-                if (pos<tam) {
-                  printf("Entro a pos<tam\n");
-                  ingre++;
-                  fseek(files,0L,SEEK_SET);
-                  fwrite(&ingre,sizeof(int),1,files);
-                  temp = malloc(sizeof(struct dogType));
-                  for (int i = 1; i < pos; i++) {
-                    fread(temp,sizeof(struct dogType),1,files2);
-                    if (temp->next < pos) {
-                      fwrite(temp,sizeof(struct dogType),1,files);
-                    }else{
-                    if (temp->next > pos) {
-                      temp->next = pos;
-                      fwrite(temp,sizeof(struct dogType),1,files);
-                    }
-                    }
-                  }
-                fread(temp,sizeof(struct dogType),1,files2);
-                fwrite(pet,sizeof(struct dogType),1,files);
-                  for (int rec = pos; rec < tam; rec++) {
-                      fread(temp,sizeof(struct dogType),1,files2);
-                      fwrite(temp,sizeof(struct dogType),1,files);
-                  }
-                fclose(files2);
-                fclose(files);
-                remove("dataDogs.dat");
-                rename("dataTemp.dat","dataDogs.dat");
-                free(temp);
-                free(pet);
-
+				if (pos<tam) {
+					printf("Entro a pos<tam\n");
+					preMenu();
+					ingre++;
+					fseek(files,0L,SEEK_SET);
+					fwrite(&ingre,sizeof(int),1,files);
+					temp = malloc(sizeof(struct dogType));
+					for (int i = 1; i < pos; i++) {
+						fread(temp,sizeof(struct dogType),1,files2);
+						if (temp->next < pos) {
+							fwrite(temp,sizeof(struct dogType),1,files);
+						}else{
+							if (temp->next > pos) {
+							  temp->next = pos;
+							  fwrite(temp,sizeof(struct dogType),1,files);
+							}
+						}
+					}
+					fread(temp,sizeof(struct dogType),1,files2);
+					fwrite(pet,sizeof(struct dogType),1,files);
+					for (int rec = pos; rec < tam; rec++) {
+						fread(temp,sizeof(struct dogType),1,files2);
+						fwrite(temp,sizeof(struct dogType),1,files);
+					}
+					fclose(files2);
+					fclose(files);
+					remove("dataDogs.dat");
+					rename("dataTemp.dat","dataDogs.dat");
+					printRecord(pet);
+					free(temp);
+					free(pet);
                 }
             }
         }
@@ -343,8 +350,9 @@ int equals(char petName[], char petName2[]){
 void randomStruct(){
 	struct dogType* pet=malloc(sizeof(struct dogType));
 	//se meten los datos en el archivo
-	int i=10,idF;
-	for(;i<1000;i++){
+	int i=0,idF;
+	for(;i<7;i++){
+		memset(pet->Name,0,32);
 		strcpy(pet->Name,names[i]);
         strcpy(pet->Type,randType());
         pet->Age = randAge();
