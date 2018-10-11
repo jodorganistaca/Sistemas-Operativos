@@ -64,9 +64,9 @@ char *breed[] = {"Akita","Azawakh","Basenji","Beagle","Bulldog",
 "Lebrel","Leonberger","Mudi","Pumi",};
 
 void preMenu(){
-    printf("Oprima [Enter] para Continuar\n");
+    /*printf("Oprima [Enter] para Continuar\n");
     fflush(stdin);
-	getchar();
+	getchar();*/
 }
 
 void writeTable(int pos, struct dogType *pet){
@@ -348,10 +348,11 @@ int equals(char petName[], char petName2[]){
 }
 
 void randomStruct(){
-	struct dogType* pet=malloc(sizeof(struct dogType));
+	struct dogType *pet;
 	//se meten los datos en el archivo
 	int i=0,idF;
-	for(;i<7;i++){
+	for(;i<1000;i++){
+		pet=malloc(sizeof(struct dogType));
 		memset(pet->Name,0,32);
 		strcpy(pet->Name,names[i]);
         strcpy(pet->Type,randType());
