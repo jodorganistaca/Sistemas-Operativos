@@ -78,7 +78,6 @@ void writeTable(int pos, struct dogType *pet){
     long int wr=0;
     int tam;
     int ingre;
-
     FILE *files2=fopen("dataDogs.dat","rb");
     if(files2==NULL){
         printf("Error abriendo archivo dataDogs.dat.\n");
@@ -124,6 +123,7 @@ void writeTable(int pos, struct dogType *pet){
             free(temp);
 			free(pet);
         }else{
+			printf("%i\n",pos);
             if(pos>tam){///ingresa un registro dependiendo la poscion
                         ///en este caso mayor al tam del file actual
                         ///Cerramos el archivo para escribirlo en un archivo
@@ -171,8 +171,8 @@ void writeTable(int pos, struct dogType *pet){
 							  temp->next = pos;
 							  fwrite(temp,sizeof(struct dogType),1,files);
 							}else{
-                fwrite(temp,sizeof(struct dogType),1,files);
-              }
+                				fwrite(temp,sizeof(struct dogType),1,files);
+              				}
 						}
 					}
 					fread(temp,sizeof(struct dogType),1,files2);
@@ -185,7 +185,7 @@ void writeTable(int pos, struct dogType *pet){
 					fclose(files);
 					remove("dataDogs.dat");
 					rename("dataTemp.dat","dataDogs.dat");
-					// printRecord(pet);
+					printRecord(pet);
 					free(temp);
 					free(pet);
                 }
@@ -340,13 +340,15 @@ void init(){
 	j = 0;
     for(i = 0; i<1005;i++){
         id = hash_function(names[i]);
-        //fprintf(fileW, " %d %s \n", ids[i], names[i]);//escribimos en el archivo W1 los id y su nombre
-		fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre
-		fprintf(fileW4," %i\n",arrId[i]);
 		if(arrId[i]==0){
 			freeIds[j]=i;
+			ids[rep[j]]=i;
 			j++;					
 		}
+        fprintf(fileW, " %d %s \n", ids[i], names[i]);//escribimos en el archivo W1 los id y su nombre
+		//fprintf(fileW, " %d %s \n", id, names[i]);//escribimos en el archivo W1 los id y su nombre
+		fprintf(fileW4," %i\n",arrId[i]);
+		
     }
 	for(;i<1010;i++){
 		fprintf(fileW4," %i\n",arrId[i]);
@@ -508,8 +510,10 @@ void randomStruct(){
         pet->height = randHeight();
         pet->weight = randWeight();
         pet->gender = randGender();
-        pet->colision = -1;
+		pet->id = freeIds[i];
+		pet->existe = 1;
 		writeTable(freeIds[i],pet);
+		//preMenu();
 	}
   	printf("ingresados%i\n",counts);
 	printf("Archivo de prueba generado exitosamente.\n");
