@@ -610,8 +610,8 @@ void randomStructF(){
 	
 	int i=1,idF,j = 0,offset =1005;
 	int counts=0;
-//	for(;i<9990000;i++){
-	for(;i<2001;i++){
+	for(;i<9999001;i++){
+	//for(;i<1001;i++){
 		files=fopen("dataDogs.dat","rb");
 		dog=malloc(sizeof(struct dogType));
 		if(files==NULL){
@@ -655,9 +655,9 @@ void randomStructF(){
 		memset(pet->Name,0,32);
 		strcpy(pet->Name,dog->Name);
 		pet->id = (dog->id) + offset;
-		pet->next = (pet->id)+offset;	
+		pet->next = (pet->id)+1005;	
 		pet->colision = (dog->colision)+offset;	
-		pet->existe = 1;
+		pet->existe = dog->existe;
 
 		free(dog);
 
@@ -669,10 +669,10 @@ void randomStructF(){
         pet->weight = randWeight();
         pet->gender = randGender();		
 		fileA = fopen("dataDogs.dat","ab");
-		if(i%1005==0){
+		/*if(i%1005==0){
 			printRecord(pet);
 			preMenu();		
-		}		
+		}	*/	
 		fwrite(pet,sizeof(struct dogType),1,fileA);
 		fclose(fileA);
 		free(pet);		
@@ -843,7 +843,7 @@ void randomStruct2(){
 
 int main(){
 	init();
-	//randomStruct();
+	randomStruct();
 	randomStructF();
 /*  for (int i = 0; i < 17; i++) {
     randomStruct2();
