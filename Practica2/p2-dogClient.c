@@ -621,6 +621,50 @@ void menu(){
 
 }
 
+unsigned char * serializar_int(unsigned char *buffer, struct dogType pet){
+	/* Write big-endian int value into buffer; assumes 32-bit int and 8-bit char. */
+	buffer[0] = value >> 24;
+	buffer[1] = value >> 16;
+	buffer[2] = value >> 8;
+	buffer[3] = value;
+	return buffer + 4;
+}
+
+unsigned char * serializar_char(unsigned char *buffer, char value){
+	buffer[0] = value;
+	return buffer + 1;
+}
+
+unsigned char * serializar_temp(unsigned char *buffer, struct temp *value){
+	buffer = serialize_int(buffer, value->a);
+	buffer = serialize_char(buffer, value->b);
+	return buffer;
+}
+
+unsigned char * deserializar_int(unsigned char *buffer, int *value);
+
+int cliente(){
+	struct sockaddr_in direccionServidor;
+	direccionServidor.sin_family = AF_INET;
+	direccionServidor.sin_addr.s_addr = inet_addr("127.0.0.1");
+	direccionServidor.sin_port = htons(8080);
+
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+	if (connect(cliente, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+		perror("No se pudo conectar");
+		return 1;
+	}
+	struct dogType *pet = initRecord();
+	while (1) {
+		char mensaje[1000];
+		scanf("%s", mensaje);
+
+		send(cliente, mensaje, strlen(mensaje), 0);
+	}
+
+	return 0;
+}
+
 int main(){
 	menu();
     return 0;

@@ -4,13 +4,13 @@
 #include<string.h>
 #include<ctype.h>
 #include<unistd.h>
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#define INITIAL_SIZE 8 //valor inicial para el buffer 8 bytes (sizeof(struct *dogType))
 #define PORT 3535
 #define LEN 32
 #define BACKLOG 8
@@ -31,6 +31,32 @@ struct dogType{
     char gender;
     int colision;
 };
+
+#define INITIAL_SIZE 32
+
+struct Buffer {//Buffer para los pasos de mensajes
+    void *data;
+    int next;
+    size_t size;
+}
+
+struct Buffer *new_buffer() {
+    struct Buffer *b = malloc(sizeof(Buffer));
+
+    b->data = malloc(INITIAL_SIZE);
+    b->size = INITIAL_SIZE;
+    b->next = 0;
+
+    return b;
+}
+
+void reserve_space(Buffer *b, size_t bytes) {
+    if((b->next + bytes) > b->size) {
+        /* double size to enforce O(lg N) reallocs */
+        b->data = realloc(b->data, b->size * 2);
+        b->size *= 2;
+    }
+}
 
 //struct dogType *hash_table[MAX];
 
@@ -114,6 +140,21 @@ int hash_file(char n[32]){
 	if(found==0) printf("Mascota no encontrada.\n");
 	preMenu();
 	return sol;
+}
+
+int fillRecord(binn *obj,struct *dogType newDog){
+	binn_object_set_int32(obj, "id", newDog->id);
+	binn_object_set_int32(obj, "next", newDog->next);
+	binn_object_set_int32(obj, "existe", newDog->existe);
+	binn_object_set_str(obj, "name", newDog->Name);
+	binn_object_set_double(obj, "type", newDog->Type);
+	binn_object_set_str(obj, "age", newDog->Age);
+	binn_object_set_double(obj, "height", newDog->height);
+	binn_object_set_double(obj, "breed", newDog->breed);
+	binn_object_set_double(obj, "weight", newDog->weight);
+	binn_object_set_double(obj, "gender", newDog->gender);
+	binn_object_set_double(obj, "colision", newDog->colision);
+	return 0;
 }
 
 //struct dogType *createDog(){
@@ -262,41 +303,41 @@ int isFull(int buscar,char name[32]){
 		printf("Error abriendo archivo dataDogs.dat.\n");
 		res=0;
 	}else{
-		fseek(files, 0L, SEEK_END);
+	fseek(files, 0L, SEEK_END);
     //fread(dog,sizeof(struct dogType),1,files);
-		long int wr = ftell(files);
+	long int wr = ftell(files);
     printf("tamleido%li\n",wr);
-		fseek(files, 0L, SEEK_SET);
+	fseek(files, 0L, SEEK_SET);
     int ingresados;
     fread(&ingresados,sizeof(int),1,files);
-		int totalRecords=(int)(((wr-sizeof(int))/sizeof(struct dogType)));
-		printf("Cantidad de registros:\t""%i\n",ingresados);
+	int totalRecords=(int)(((wr-sizeof(int))/sizeof(struct dogType)));
+	printf("Cantidad de registros:\t""%i\n",ingresados);
     printf("Cantidad de estructuras:\t""%i\n",totalRecords);
 
-           if (buscar>totalRecords) {
-             res=0;
-           }else{
-             fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar-1))),SEEK_SET);
-             fread(dog,sizeof(struct dogType),1,files);
-             printf("id = %i\n",dog->id);
-             printf("existe = %i\n",dog->existe);
-             if (dog->existe==0 && dog->Name==name) {
-               res = 0;
-             }else{
-              if (dog->Name!=name) {
-                res = 1;
-              }else{
-                res = -1;
-              }
-             }
-             printf("Nombre %s\n",dog->Name);
+	if (buscar>totalRecords) {
+	 res=0;
+	}else{
+	 fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar-1))),SEEK_SET);
+	 fread(dog,sizeof(struct dogType),1,files);
+	 printf("id = %i\n",dog->id);
+	 printf("existe = %i\n",dog->existe);
+	 if (dog->existe==0 && dog->Name==name) {
+	   res = 0;
+	 }else{
+	  if (dog->Name!=name) {
+		res = 1;
+	  }else{
+		res = -1;
+	  }
+	 }
+	 printf("Nombre %s\n",dog->Name);
 
-           }
+	}
 
-fclose(files);
-free(dog);
-}
-return res;
+	fclose(files);
+	free(dog);
+	}
+	return res;
 }
 
 int colision(char nom[32],int hash) {
@@ -329,10 +370,15 @@ int colision(char nom[32],int hash) {
 
 void insertRecord(){
     //Se llenan los campos pedidos en la estructura NewDog
-    struct dogType *newDog = malloc(sizeof(struct dogType));
+	binn *obj;
+
+	// create a new object
+	obj = binn_object();
+
+	struct dogType *newDog = malloc(sizeof(struct dogType));
     struct sockaddr_in servidor, cliente; //socket para el servidor y el cliente
     printf("Por favor ingrese los datos pedidos a continuación\n"
-        "ingrese nombre:\n"
+        "ingrese nombinsertRere:\n"
         "Cuando haya terminado presione enter\n");
     memset(newDog->Name,32,32);
     char n[32];
@@ -365,7 +411,7 @@ void insertRecord(){
 		break;
 	}while(1);
     //Se llenan todos los campos menos id y Next
-
+	printf("%ld\n",sizeof(newDog));
     int h = hash_function(newDog->Name);
     printf("ID ASISGNADO%i\n",h);
     newDog->existe=1;
@@ -383,9 +429,18 @@ void insertRecord(){
     }
     newDog->id = h;
     newDog->next=h+1000;
-    writeTable(h,newDog);
+	// add values to it
+	
+	fillRecord(obj,newDog);
+	
+    // send over the network or save to a file...
+	send(sock, binn_ptr(obj), binn_size(obj));
+
     printf("El id del registro%i\n",h);
     printf("registro hecho\n");
+
+	// release the buffer
+	binn_free(obj);
 
     preMenu();
 }
@@ -587,7 +642,7 @@ void searchRecord(){
 
 //Menu principal
 void menu(){
-    int option;
+    /*int option;
     do{
         printf("Por favor seleciona un numero de las sgtes opciones seguido de la tecla enter\n"
            "1. Ingresar registro\n"
@@ -620,11 +675,61 @@ void menu(){
                 break;
         };
     }while(option!=5);
+*/
+}
 
+int server(){
+	struct sockaddr_in direccionServidor;
+	direccionServidor.sin_family = AF_INET;
+	direccionServidor.sin_addr.s_addr = INADDR_ANY;
+	direccionServidor.sin_port = htons(8080);
+
+	int servidor = socket(AF_INET, SOCK_STREAM, 0);
+
+	int activado = 1;
+	setsockopt(servidor, SOL_SOCKET, SO_REUSEADDR, &activado, sizeof(activado));
+
+	if (bind(servidor, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+		perror("Falló el bind");
+		return 1;
+	}
+
+	printf("Estoy escuchando\n");
+	listen(servidor, 100);
+
+	//------------------------------
+
+	struct sockaddr_in direccionCliente;
+	unsigned int tamaDireccion;
+	int cliente = accept(servidor, (void*) &direccionCliente, &tamaDireccion);
+
+	printf("Recibí una conexión en %d!!\n", cliente);
+	send(cliente, "Hola NetCat!", 13, 0);
+	send(cliente, ":)\n", 4, 0);
+
+	//------------------------------
+
+	char* buffer = malloc(1000);
+
+	while (1) {
+		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+		if (bytesRecibidos <= 0) {
+			perror("El chabón se desconectó o bla.");
+			return 1;
+		}
+
+		buffer[bytesRecibidos] = '\0';
+		printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
+	}
+
+	free(buffer);
+
+	return 0;
 }
 
 int main(){
-	menu();
+//	menu();
+	insertRecord();
     return 0;
 }
 
