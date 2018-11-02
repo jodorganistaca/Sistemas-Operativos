@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <binn.h>//libreria para serializar https://github.com/liteserver/binn
 
 #define INITIAL_SIZE 8 //valor inicial para el buffer 8 bytes (sizeof(struct *dogType))
 #define PORT 3535
@@ -32,9 +33,9 @@ struct dogType{
     int colision;
 };
 
-#define INITIAL_SIZE 32
+//#define INITIAL_SIZE 32
 
-struct Buffer {//Buffer para los pasos de mensajes
+/*struct Buffer {//Buffer para los pasos de mensajes
     void *data;
     int next;
     size_t size;
@@ -53,10 +54,10 @@ struct Buffer *new_buffer() {
 void reserve_space(Buffer *b, size_t bytes) {
     if((b->next + bytes) > b->size) {
         /* double size to enforce O(lg N) reallocs */
-        b->data = realloc(b->data, b->size * 2);
-        b->size *= 2;
-    }
-}
+    //    b->data = realloc(b->data, b->size * 2);
+    //    b->size *= 2;
+    //}
+//}
 
 //struct dogType *hash_table[MAX];
 
@@ -142,19 +143,69 @@ int hash_file(char n[32]){
 	return sol;
 }
 
-int fillRecord(binn *obj,struct *dogType newDog){
+int fillRecordObj(binn *obj,struct dogType *newDog){
 	binn_object_set_int32(obj, "id", newDog->id);
 	binn_object_set_int32(obj, "next", newDog->next);
 	binn_object_set_int32(obj, "existe", newDog->existe);
 	binn_object_set_str(obj, "name", newDog->Name);
-	binn_object_set_double(obj, "type", newDog->Type);
-	binn_object_set_str(obj, "age", newDog->Age);
-	binn_object_set_double(obj, "height", newDog->height);
-	binn_object_set_double(obj, "breed", newDog->breed);
-	binn_object_set_double(obj, "weight", newDog->weight);
-	binn_object_set_double(obj, "gender", newDog->gender);
-	binn_object_set_double(obj, "colision", newDog->colision);
+	binn_object_set_str(obj, "type", newDog->Type);
+	binn_object_set_int32(obj, "age", newDog->Age);
+	binn_object_set_int32(obj, "height", newDog->height);
+	binn_object_set_str(obj, "breed", newDog->breed);
+	binn_object_set_float(obj, "weight", newDog->weight);
+	binn_object_set_str(obj, "gender", newDog->gender);
+	binn_object_set_int32(obj, "colision", newDog->colision);
 	return 0;
+}
+
+int writeObj(binn *obj){
+	struct sockaddr_in direccionServidor;
+	direccionServidor.sin_family = AF_INET;
+	direccionServidor.sin_addr.s_addr = INADDR_ANY;
+	direccionServidor.sin_port = htons(8080);
+
+	int servidor = socket(AF_INET, SOCK_STREAM, 0);
+
+	int activado = 1;
+	setsockopt(servidor, SOL_SOCKET, SO_REUSEADDR, &activado, sizeof(activado));
+
+	if (bind(servidor, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+		perror("Falló el bind");
+		return 1;
+	}
+
+	printf("Estoy escuchando\n");
+	listen(servidor, 100);
+
+	//------------------------------
+
+	struct sockaddr_in direccionCliente;
+	unsigned int tamaDireccion;
+	int cliente = accept(servidor, (void*) &direccionCliente, &tamaDireccion);
+
+	printf("Recibí una conexión en %d!!\n", cliente);
+	send(cliente, "Hola NetCat!", 13, 0);
+	send(cliente, ":)\n", 4, 0);
+
+	//------------------------------
+
+	char* buffer = malloc(1000);
+
+	while (1) {
+		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+		if (bytesRecibidos <= 0) {
+			perror("El chabón se desconectó o bla.");
+			return 1;
+		}
+
+		buffer[bytesRecibidos] = '\0';
+		printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
+	}
+
+	free(buffer);
+
+	return 0;
+
 }
 
 //struct dogType *createDog(){
@@ -431,7 +482,7 @@ void insertRecord(){
     newDog->next=h+1000;
 	// add values to it
 	
-	fillRecord(obj,newDog);
+	fillRecordObj(obj,newDog);
 	
     // send over the network or save to a file...
 	send(sock, binn_ptr(obj), binn_size(obj));

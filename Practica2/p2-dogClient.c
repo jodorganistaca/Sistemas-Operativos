@@ -4,15 +4,17 @@
 #include<string.h>
 #include<ctype.h>
 #include<unistd.h>
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <binn.h>//libreria para serializar https://github.com/liteserver/binn
 
+#define INITIAL_SIZE 8 //valor inicial para el buffer 8 bytes (sizeof(struct *dogType))
 #define PORT 3535
 #define LEN 32
+#define BACKLOG 8
 
 #define TAM 1005
 #define prime 1009
@@ -113,6 +115,20 @@ int hash_file(char n[32]){
 	if(found==0) printf("Mascota no encontrada.\n");
 	preMenu();
 	return sol;
+}
+
+int fillRecordPet(binn *obj,struct dogType *newDog){
+	newDog->id = binn_object_int32(obj, "id");
+	newDog->next = binn_object_int32(obj, "next");
+	newDog->existe = binn_object_int32(obj, "existe");
+	newDog->Name = binn_object_str(obj, "name");
+	newDog->Type = binn_object_str(obj, "type");
+	newDog->Age = binn_object_int32(obj, "age");
+	newDog->height = binn_object_int32(obj, "height");
+	newDog->breed = binn_object_str(obj, "breed");
+	newDog->weight = binn_object_float(obj, "weight");
+	newDog->gender = binn_object_str(obj, "gender");
+	newDog->colision = binn_object_int32(obj, "colision");
 }
 
 //struct dogType *createDog(){
