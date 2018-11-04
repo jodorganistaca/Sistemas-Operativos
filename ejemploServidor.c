@@ -125,31 +125,13 @@ void server(){
 						sTm = gmtime (&now);
 
 						strftime (buff, sizeof(buff), "%Y-%m-%d %H:%M:%S", sTm);
+						printf ("|%s| |%s| |%i| |%i| |%s|\n", 
+						buff, inet_ntoa(remoteaddr.sin_addr),mens->option,mens->registro,mens->cadena);
 						fprintf (f,"|%s| |%s| |%i| |%i| |%s|\n", 
 						buff, inet_ntoa(remoteaddr.sin_addr),mens->option,mens->registro,mens->cadena);
 						
 						fclose(f);
-						
-					}
-					
-					
-                    struct dogType *tempDog=malloc(sizeof(struct dogType));
-
-                    if ((nbytes = recv(i, tempDog, sizeof(struct dogType), 0)) <= 0) {
-                        // error o conexión cerrada por el cliente
-                        if (nbytes == 0) {
-                            // conexión cerrada
-                            printf("selectserver: socket %d hung up\n", i);
-                        } else {
-                            perror("recv");
-                        }
-                        close(i); // bye!
-                        FD_CLR(i, &master); // eliminar del conjunto maestro
-                    } else {
-						printf("llego nombre: %s\n",tempDog->Name);
-						printf("llego especie: %s\n",tempDog->Type);
-                        // tenemos datos de algún cliente
-                        for(j = 0; j <= fdmax; j++) {
+						for(j = 0; j <= fdmax; j++) {
                             // ¡enviar a todo el mundo!
                             if (FD_ISSET(j, &master)) {
                                 // excepto al listener y a nosotros mismos
@@ -160,7 +142,12 @@ void server(){
                                 }
                             }
                         }
-                    }
+						free(mens);
+						
+					}
+					
+
+                    
                 } // Esto es ¡TAN FEO!
             }
         }
