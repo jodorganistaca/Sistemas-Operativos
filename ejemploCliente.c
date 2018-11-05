@@ -75,7 +75,6 @@ int menu(){
 				return 1;
                 break;
             case 2:
-				printf("entro a 2!!\n");
 				return 2;
                 break;
             case 3:
@@ -174,7 +173,15 @@ int main(void) {
 				mens2->option = 2;
 				memcpy(mens2->cadena,newDog2->Name,32);
 				mens2->registro = buscar;
+				int ingresados, totalRecords;
 				send(cliente, mens2, sizeof(struct mensaje), 0);
+				recv(cliente, &ingresados, sizeof(int), 0);
+				printf("Cantidad de registros:\t""%i\n",ingresados);
+				recv(cliente, &totalRecords, sizeof(int), 0);
+				printf("Cantidad de estructuras:\t""%i\n",totalRecords);
+				char b[5];
+				recv(cliente, b, sizeof(b), 0);
+				system(b);
 				free(mens2);
 				free(newDog2);
 				break;

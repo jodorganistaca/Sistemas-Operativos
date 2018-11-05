@@ -59,8 +59,8 @@ void preMenu(){
 
 void printRecord(struct dogType *dog){
 	printf("------------------------\n");
-	//printf("Colision: %i\n",dog->colision);
-	//printf("Id: %i\n",dog->id);
+	printf("Colision: %i\n",dog->colision);
+	printf("Id: %i\n",dog->id);
 	printf("Nombre: %s\n",dog->Name);
 	printf("Tipo: %s\n", dog->Type);
 	printf("Edad: %i años\n", dog->Age);
@@ -68,7 +68,7 @@ void printRecord(struct dogType *dog){
 	printf("Estatura: %i cm\n", dog->height);
 	printf("Peso: %3f Kg\n", dog->weight);
 	printf("Sexo: %c\n", dog->gender);
-	//printf("next: %i\n",dog->next);
+	printf("next: %i\n",dog->next);
 	printf("------------------------\n");
 }
 
@@ -141,12 +141,10 @@ int isFull(int buscar,char name[32]){
 }
 
 int equals(char petName[], char petName2[]){
-    printf("s1: %s\t s2: %s\n",petName,petName2);
 	if(strlen(petName)!=strlen(petName2)){
 		return 0;
 	}else{
-		int i=0;
-		for(i;i<strlen(petName);i++){
+		for(int i=0;i<strlen(petName);i++){
 			if(tolower(petName[i])!=tolower(petName2[i])){
 				return 0;
 			}
@@ -333,7 +331,6 @@ void refresh(int count,int key){
 			dog->colision=count;
 			printf("Nombre cambiado%s\n",dog->Name);
 			fwrite(dog,sizeof(struct dogType),1,files2);
-			//preMenu();
 			for (int rec = key; rec < totalRecords; rec++) {
 			    fread(dog,sizeof(struct dogType),1,files);
 			    fwrite(dog,sizeof(struct dogType),1,files2);
@@ -421,14 +418,12 @@ void insertRecord(struct dogType *newDog){
     newDog->colision=-1;
     newDog->id = h;
     newDog->next=h+1005;
-	printf("Hasta aqui a funcionado");
-	preMenu();
     writeTable(h,newDog);
     printf("El id del registro%i\n",h);
     printf("registro hecho\n");
 }
 
-void seeRecord(int buscar){
+void seeRecord(int buscar,int cliente){
 	FILE *files=fopen("dataDogs.dat","rb");
 	struct dogType* dog=malloc(sizeof(struct dogType));
 	if(files==NULL){
@@ -445,6 +440,9 @@ void seeRecord(int buscar){
 		int totalRecords=(int)(((wr-sizeof(int))/sizeof(struct dogType)));
 		printf("Cantidad de registros:\t""%i\n",ingresados);
     	printf("Cantidad de estructuras:\t""%i\n",totalRecords);
+		
+		send(cliente, &ingresados, sizeof(int), 0);
+		send(cliente, &totalRecords, sizeof(int), 0);
 
 		if (buscar>totalRecords) {
 			printf("Posicion erronea\n");
@@ -472,8 +470,8 @@ void seeRecord(int buscar){
 			//strcat(b,c);
 
 			printf("%s\n",b);
-
-			system(b);
+			send(cliente, b, sizeof(b), 0);
+			//system(b);
 
 		}
 		fseek(files,0L,SEEK_END);
@@ -483,7 +481,6 @@ void seeRecord(int buscar){
 	free(dog);
 	printf("Información mostrada exitosamente.\n");
 
-    preMenu();
 }
 
 void deleteRecord(int record){
@@ -565,7 +562,6 @@ void deleteRecord(int record){
 			}
         }
 	}
-	preMenu();
 }
 
 int getKey(int code,char name[32]){
@@ -650,7 +646,6 @@ void searchRecord(char n[32]){
 	}
     free(pet);
 	fclose(fp);
-    preMenu();
 }
 
 void server(){
@@ -771,7 +766,7 @@ void server(){
 								}
 								break;
 							case 2:
-								seeRecord(mens->registro);
+								seeRecord(mens->registro,i);
 								break;
 							case 3:
 								deleteRecord(mens->registro);
