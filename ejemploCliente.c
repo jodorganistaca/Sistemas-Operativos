@@ -39,6 +39,27 @@ int hash_function(char a[32]){
     return hash%prime;
 }
 
+void preMenu(){
+    printf("Oprima [Enter] para volver al menu\n");
+    fflush(stdin);
+	getchar();
+}
+
+void printRecord(struct dogType *dog){
+	printf("------------------------\n");
+	printf("Colision: %i\n",dog->colision);
+	printf("Id: %i\n",dog->id);
+	printf("Nombre: %s\n",dog->Name);
+	printf("Tipo: %s\n", dog->Type);
+	printf("Edad: %i años\n", dog->Age);
+	printf("Raza: %s\n", dog->breed);
+	printf("Estatura: %i cm\n", dog->height);
+	printf("Peso: %3f Kg\n", dog->weight);
+	printf("Sexo: %c\n", dog->gender);
+	printf("next: %i\n",dog->next);
+	printf("------------------------\n");
+}
+
 int menu(){
     int option;
     do{
@@ -54,6 +75,7 @@ int menu(){
 				return 1;
                 break;
             case 2:
+				printf("entro a 2!!\n");
 				return 2;
                 break;
             case 3:
@@ -62,6 +84,9 @@ int menu(){
             case 4:
 				return 4;
                 break;
+			case 6:
+				return 6;
+				break;
         };
     }while(option!=5);
 	return -1;
@@ -71,7 +96,7 @@ void insertRecord(struct dogType *newDog){
 	printf("Por favor ingrese los datos pedidos a continuación\n"
 		"ingrese nombre:\n"
 		"Cuando haya terminado presione enter\n");
-	memset(newDog->Name,32,32);
+	memset(newDog->Name,0,32);
 	char n[32];
 	scanf("%s", newDog->Name);
 	printf("ingrese especie:\n"
@@ -117,7 +142,7 @@ int main(void) {
 
 	char* buffer = malloc(1000);
 	int o=0;
-	while (o!=-1) {		
+	while (o!=-1) {
 		o = menu();
 		switch(o){
 			case 1:
@@ -129,7 +154,11 @@ int main(void) {
 				mens->option = 1;
 				memcpy(mens->cadena,newDog->Name,32);
 				mens->registro = 0;
+				printRecord(mens->dog);
+				preMenu();
 				send(cliente, mens, sizeof(struct mensaje), 0);
+				send(cliente, newDog, sizeof(struct dogType), 0);
+				
 				free(mens);
 				free(newDog);
 				break;
@@ -138,7 +167,9 @@ int main(void) {
 				struct dogType *newDog2 = malloc(sizeof(struct dogType));
 				struct mensaje *mens2 = malloc(sizeof(struct mensaje));
 				int buscar=0;
+				printf("Por favor digite el registro a ver seguido de la tecla ENTER:\n");
 				scanf("%i",&buscar);
+				printf("%i\n",buscar);
 				mens2->dog = newDog2;
 				mens2->option = 2;
 				memcpy(mens2->cadena,newDog2->Name,32);
@@ -152,6 +183,7 @@ int main(void) {
 				struct dogType *newDog3 = malloc(sizeof(struct dogType));
 				struct mensaje *mens3 = malloc(sizeof(struct mensaje));
 				int eliminar=0;
+				printf("Por favor digite el registro a eliminar seguido de la tecla ENTER:\n");
 				scanf("%i",&eliminar);
 				mens3->dog = newDog2;
 				mens3->option = 3;
@@ -165,10 +197,9 @@ int main(void) {
 				;
 				struct dogType *newDog4 = malloc(sizeof(struct dogType));
 				struct mensaje *mens4 = malloc(sizeof(struct mensaje));
-				printf("Por favor ingrese los datos pedidos a continuación\n"
-				"ingrese nombre:\n"
+				printf("Por favor digite el nombre de su mascota\n"
 				"Cuando haya terminado presione enter\n");
-				memset(newDog4->Name,32,32);
+				memset(newDog4->Name,0,32);
 				scanf("%s", newDog4->Name);
 				mens4->dog = newDog2;
 				mens4->option = 4;
@@ -180,6 +211,17 @@ int main(void) {
 				break;
 			case 5:
 				break;
+			case 6:
+                ;
+                char nombre[32];
+                printf("Ingrese el nombre de la mascota a calcular la hash Function\n");
+                memset(nombre,0,32);
+                scanf("%s",nombre);
+                printf("%s\n",nombre);
+                int h = hash_function(nombre);
+                printf("%i\n", h);
+                break;
+
 		}		
 
 	}
