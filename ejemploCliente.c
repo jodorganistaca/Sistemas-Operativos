@@ -181,7 +181,20 @@ int main(void) {
 				printf("Cantidad de estructuras:\t""%i\n",totalRecords);
 				char b[5];
 				recv(cliente, b, sizeof(b), 0);
-				system(b);
+				char q;
+				fflush(stdin);
+				printf("oprima y / n para abrir el historial.\n");
+				do{
+					scanf("%c",&q);
+					if(q!='y'&&q!='n'){
+						printf("opcion invalida, solo se permite y / n.\n");
+						continue;
+					}
+					break;
+				}while(1);
+		        if(q=='y'){
+					system(b);
+				}
 				free(mens2);
 				free(newDog2);
 				break;
