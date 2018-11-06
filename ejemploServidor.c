@@ -483,6 +483,19 @@ void seeRecord(int buscar,int cliente){
 			fclose(files);*/
 			printf("%s\n",b);
 			send(cliente, b, sizeof(b), 0);
+			char q;
+			fflush(stdin);
+			do{
+				scanf("%c",&q);
+				if(q!='y'&&q!='n'){
+					printf("opcion invalida, solo se permite y / n.\n");
+					continue;
+				}
+				break;
+			}while(1);
+            if(q=='y'){
+				system(b);
+			}
 			//system(b);
 
 		}
