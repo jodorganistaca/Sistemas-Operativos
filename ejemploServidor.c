@@ -61,6 +61,7 @@ void printRecord(struct dogType *dog){
 	printf("------------------------\n");
 	printf("Colision: %i\n",dog->colision);
 	printf("Id: %i\n",dog->id);
+	printf("Existe: %i\n",dog->existe);
 	printf("Nombre: %s\n",dog->Name);
 	printf("Tipo: %s\n", dog->Type);
 	printf("Edad: %i años\n", dog->Age);
@@ -466,9 +467,20 @@ void seeRecord(int buscar,int cliente){
 			char c[4] = ".txt";
 			printf("%s\n",path);
 			printf("c= %s\n", c);
+			/*char d[32];
+			itoa(dog->id,d);
+			printf("d= %s\n",d);
+			char buffer[100];
 			//strcat(b,path);
-			//strcat(b,c);
-
+			strcat(d,c);
+			FILE *files=fopen(d,"rb");
+			if(files==NULL){
+			}else{
+				fscanf(files,"%s",buffer);
+				send(cliente, buffer, sizeof(buffer), 0);
+				fclose(files);
+			}			
+			fclose(files);*/
 			printf("%s\n",b);
 			send(cliente, b, sizeof(b), 0);
 			//system(b);
@@ -606,7 +618,7 @@ int getKey(int code,char name[32]){
 
 }
 
-void searchRecord(char n[32]){
+void searchRecord(char n[32],int cliente){
     long int wr=0;
     int tam;
     int ingre;
@@ -640,9 +652,13 @@ void searchRecord(char n[32]){
   			fread(pet,sizeof(struct dogType),1,fp);
       		h+=1005;
 			if (pet->existe==1) {
-				printRecord(pet);
+				//printRecord(pet);
+				send(cliente, pet, sizeof(struct dogType), 0);
 			}
 		} while(pet->next==pet->id+1005 && h<=tam);
+		pet->existe = 0;
+		printRecord(pet);
+		send(cliente, pet, sizeof(struct dogType), 0);
 	}
     free(pet);
 	fclose(fp);
@@ -772,7 +788,7 @@ void server(){
 								deleteRecord(mens->registro);
 								break;
 							case 4:
-								searchRecord(mens->cadena);
+								searchRecord(mens->cadena,i);
 								break;
 						}
 						for(j = 0; j <= fdmax; j++) {

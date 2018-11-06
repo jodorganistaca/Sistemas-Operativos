@@ -215,6 +215,17 @@ int main(void) {
 				send(cliente, mens4, sizeof(struct mensaje), 0);
 				free(mens4);
 				free(newDog4);
+				struct dogType *petR = malloc(sizeof(struct dogType));
+				int nbytes;
+				while((nbytes = recv(cliente, petR, sizeof(struct dogType), 0)) > 0){
+					printRecord(petR);
+					printf("%i\n",nbytes);
+					if(petR->existe == 0){
+						free(petR);
+						break;					
+					}
+				}
+				free(petR);
 				break;
 			case 5:
 				break;
