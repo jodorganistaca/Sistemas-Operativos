@@ -135,7 +135,7 @@ void writeTable(int pos, struct dogType *pet){
         printf("cantidad estructuras%i \n",tam);*/
         if(wr <= 0){///va a ingresar un registro por primera vez
             ///recorremos el archivo hasta la posicion y lo llenamos de estructuras Null
-            printf("Entro a tam<=0\n");
+            //printf("Entro a tam<=0\n");
             fseek(files,0L,SEEK_SET);
             int f=1;
             fwrite(&f,sizeof(int),1,files);
@@ -149,12 +149,12 @@ void writeTable(int pos, struct dogType *pet){
             fwrite(pet,sizeof(struct dogType),1,files);
             fclose(files);
             rename("dataTemp.dat","dataDogs.dat");
-            printf("OK\n");
+            //printf("OK\n");
 			//printRecord(pet);
             free(temp);
 			free(pet);
         }else{
-			printf("%i\n",pos);
+			printf("ingresando ...\n");
             if(pos>tam){///ingresa un registro dependiendo la poscion
                         ///en este caso mayor al tam del file actual
                         ///Cerramos el archivo para escribirlo en un archivo
@@ -167,8 +167,8 @@ void writeTable(int pos, struct dogType *pet){
 					fwrite(temp,sizeof(struct dogType),1,files);
                 }
 
-                printf("Entro a pos>tam\n");
-                printf("Leyo %i estructuras ingresadas\n", ingre);
+                /*printf("Entro a pos>tam\n");
+                printf("Leyo %i estructuras ingresadas\n", ingre);*/
                 for(int rec = tam+1; rec < pos; rec++){//recorremos el archivo files escribiendo ahora en filesNew
                   //Escribimos los nulls nuevos
                     temp->id = rec;
@@ -268,7 +268,7 @@ int isFull(int buscar,char name[32]){
 		if (buscar>totalRecords) {
 			res=0;
 		}else{
-			printf("buscando %i\n",buscar);
+			//printf("buscando %i\n",buscar);
 			if(buscar>1006){
 				fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar+1))),SEEK_SET);
 			}else{
@@ -276,9 +276,9 @@ int isFull(int buscar,char name[32]){
 			}
 			memset(dog->Name,0,32);
 			fread(dog,sizeof(struct dogType),1,files);
-			printf("nombre %s\n",dog->Name);
+			/*printf("nombre %s\n",dog->Name);
 			printf("id = %i\n",dog->id);
-			printf("existe = %i\n",dog->existe);
+			printf("existe = %i\n",dog->existe);*/
 			if (dog->existe==0) {
 				res = 0;
 			}else{
@@ -407,7 +407,7 @@ void insertRecord(){
     int h = hash_function(newDog->Name);
     //printf("ID ASISGNADO por el hash %s es %i\n",newDog->Name,h);
     newDog->existe=1;
-    printf("%i\n",h);
+    //printf("%i\n",h);
     //preMenu();
     //En WriteTable si se llenan estos campos ya que se calculan
     h=getDir(h,newDog->Name);
@@ -418,24 +418,40 @@ void insertRecord(){
       refresh(fi,h);
       h=fi;
     }
-    printf("ID ASIGNADO POR GETDIR %i\n",h);
+    //printf("ID ASIGNADO POR GETDIR %i\n",h);
     int m=isFull(h,newDog->Name);
+    /*printf("%i\n",m);
+    preMenu();*/
+    int b=0;
+    if(m!=0){
+		h--;
+		b=1;
+	}
     while (m!=0) {
-      printf("m = %i\n",m);
+      //printf("m = %i\n",m);
       h=h+1005;
-      printf("h + 1005 %i\n",h);
+      //printf("h + 1005 %i\n",h);
       m=isFull(h,newDog->Name);
-    }
+    }    
     newDog->colision=-1;
-    newDog->id = h;
+    if(b){
+		newDog->id = h+1;
+	}else{
+		newDog->id = h;
+	}
+    
     newDog->next=h+1005;
-
+    //printRecord(newDog);
+    //preMenu();
+	//printf("%i\n",h);
+	//preMenu();
     writeTable(h,newDog);
     printf("El id del registro %i\n",h);
     printf("registro hecho\n");
 
     preMenu();
 }
+
 int getFreeId(){
 	FILE *readId = fopen("freeIds.txt","r");
 	FILE *writeId = fopen("freeTemp.txt","w");
@@ -537,7 +553,7 @@ void seeRecord(){
 			printf("Posicion erronea\n");
 		}
 		if(buscar>1006){
-			fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar+1))),SEEK_SET);
+			fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar))),SEEK_SET);
 		}else{
 			fseek(files,(sizeof(int)+(sizeof(struct dogType)*(buscar-1))),SEEK_SET);
 		}
@@ -586,93 +602,90 @@ void seeRecord(){
 }
 
 void deleteRecord(){
-  long int wr=0;
-  int tam;
-  int ingre;
-  FILE *files2=fopen("dataDogs.dat","rb");
-  if(files2==NULL){
-      printf("Error abriendo archivo dataDogs.dat.\n");
+	long int wr=0;
+	int tam;
+	int ingre;
+	FILE *files2=fopen("dataDogs.dat","rb");
+	if(files2==NULL){
+		printf("Error abriendo archivo dataDogs.dat.\n");
+	}else{
+		fseek(files2, 0L,SEEK_END);
+		wr=ftell(files2);
+		fseek(files2,0L,SEEK_SET);
+		fread(&ingre,sizeof(int),1,files2);
+		int tam = (int)(((wr-sizeof(int))/sizeof(struct dogType)));
+		/* printf("estructuras ingresadas%i\n",ingre);
+		printf("estructuras encontradas%i\n",tam);
+		printf("tam leido %li\n",wr);*/
+	}
+	FILE *files=fopen("dataTemp.dat","wb+");
+	if(files==NULL){
+		printf("Error abriendo archivo dataTemp.dat.\n");
+		return;
+	}else{
+		struct dogType *temp;
+		temp=malloc(sizeof(struct dogType));
+		//fseek(files,wr,SEEK_SET);
+		int tam = (int)(((wr-sizeof(int))/sizeof(struct dogType)));
+		//printf("tam leido %li\n",wr);
+		printf("cantidad estructuras %i \n",tam);
 
-  }else{
-    fseek(files2, 0L,SEEK_END);
-    wr=ftell(files2);
-  fseek(files2,0L,SEEK_SET);
-  fread(&ingre,sizeof(int),1,files2);
-  int tam = (int)(((wr-sizeof(int))/sizeof(struct dogType)));
-  printf("estructuras ingresadas%i\n",ingre);
-  printf("estructuras encontradas%i\n",tam);
-  printf("tam leido %li\n",wr);
-}
-  FILE *files=fopen("dataTemp.dat","wb+");
-  if(files==NULL){
-      printf("Error abriendo archivo dataTemp.dat.\n");
-      return;
-  }else{
-      struct dogType *temp;
-      temp=malloc(sizeof(struct dogType));
-      //fseek(files,wr,SEEK_SET);
-      int tam = (int)(((wr-sizeof(int))/sizeof(struct dogType)));
-      printf("tam leido %li\n",wr);
-      printf("cantidad estructuras%i \n",tam);
-
-      printf("Por favor ingrese el numero de registro a borrar\n");
-      int record;
-      scanf("%i",&record);
-      {
-          if(record>tam || record<1){///ingresa un registro dependiendo la poscion
-                      ///en este caso mayor al tam del file actual
-                      ///Cerramos el archivo para escribirlo en un archivo
-              printf("Registro a eliminar no existente\n");
-              return;
-            }else{
-              fseek(files2,(sizeof(int)+(sizeof(struct dogType)*(record-1))),SEEK_SET);
-              fread(temp,sizeof(struct dogType),1,files2);
-              if (temp->existe=0) {
-                printf("Registro a eliminar no existente\n");
-                free(temp);
-                return;
-              }
-              else{
-                fseek(files,0L,SEEK_SET);
-                fseek(files2,sizeof(int),SEEK_SET);
-                ingre--;
-                fwrite(&ingre,sizeof(int),1,files);
-                temp = malloc(sizeof(struct dogType));
-                if (record==tam) {
-
-                  for (int i = 1; i < tam; i++) {
-                    fread(temp,sizeof(struct dogType),1,files2);
-                    fwrite(temp,sizeof(struct dogType),1,files);
-                  }
-                  fread(temp,sizeof(struct dogType),1,files2);
-                  temp->existe=0;
-                  fwrite(temp,sizeof(struct dogType),1,files);
-                }else{
-
-                  for (int i = 1; i < record; i++) {
-                    fread(temp,sizeof(struct dogType),1,files2);
-                    fwrite(temp,sizeof(struct dogType),1,files);
-                  }
-                  fread(temp,sizeof(struct dogType),1,files2);
-                  temp->existe=0;
-                  fwrite(temp,sizeof(struct dogType),1,files);
-                  for (int rec = record; rec < tam; rec++) {
-                    fread(temp,sizeof(struct dogType),1,files2);
-                    fwrite(temp,sizeof(struct dogType),1,files);
-                  }
-                }
-                fclose(files2);
-                fclose(files);
-                remove("dataDogs.dat");
-                rename("dataTemp.dat","dataDogs.dat");
-                printf("Registro eliminado con exíto\n");
-                free(temp);
-              }
-            }
-
-      }
-  }
-
+		printf("Por favor ingrese el numero de registro a borrar\n");
+		int record;
+		scanf("%i",&record);
+		if(record>1006){
+			record+=1;
+		}
+		
+		if(record>tam || record<1){///ingresa un registro dependiendo la poscion
+				  ///en este caso mayor al tam del file actual
+				  ///Cerramos el archivo para escribirlo en un archivo
+			printf("Registro a eliminar no existente\n");
+			return;
+		}else{
+			fseek(files2,(sizeof(int)+(sizeof(struct dogType)*(record-1))),SEEK_SET);
+			fread(temp,sizeof(struct dogType),1,files2);
+			if (temp->existe=0) {
+				printf("Registro a eliminar no existente\n");
+				free(temp);
+				return;
+			}
+			else{
+				fseek(files,0L,SEEK_SET);
+				fseek(files2,sizeof(int),SEEK_SET);
+				ingre--;
+				fwrite(&ingre,sizeof(int),1,files);
+				temp = malloc(sizeof(struct dogType));
+				if (record==tam) {
+					for (int i = 1; i < tam; i++) {
+					fread(temp,sizeof(struct dogType),1,files2);
+					fwrite(temp,sizeof(struct dogType),1,files);
+					}
+					fread(temp,sizeof(struct dogType),1,files2);
+					temp->existe=0;
+					fwrite(temp,sizeof(struct dogType),1,files);
+				}else{
+					for (int i = 1; i < record; i++) {
+						fread(temp,sizeof(struct dogType),1,files2);
+						fwrite(temp,sizeof(struct dogType),1,files);
+					}
+					fread(temp,sizeof(struct dogType),1,files2);
+					temp->existe=0;
+					fwrite(temp,sizeof(struct dogType),1,files);
+					for (int rec = record; rec < tam; rec++) {
+						fread(temp,sizeof(struct dogType),1,files2);
+						fwrite(temp,sizeof(struct dogType),1,files);
+					}
+				}
+				fclose(files2);
+				fclose(files);
+				remove("dataDogs.dat");
+				rename("dataTemp.dat","dataDogs.dat");
+				printf("Registro eliminado con exíto\n");
+				free(temp);
+			}		
+		}
+	}
     preMenu();
 }
 
