@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <stdbool.h>
 #define PORT 9034   // puerto en el que escuchamos
 #define SIZE_CHUNK 1024
 
@@ -17,6 +18,7 @@
 #define prime 1009
 
 char buffer[1024];
+char fileName[100];
 
 struct dogType{
     int id; //Posicion en la cual esta guardada el registro la cual se calcula con la funcion hash(Name)
@@ -109,6 +111,42 @@ void sendFile(char* name, size_t len, int cliente) {
         #endif // VERBOSE_MODE
         fclose(tempFile);
     }
+}
+
+void receiveFile(int socketClient) {
+	int bytesRead;
+    receiveMessage(&fileName, 100, socketClient);
+    #ifdef VERBOSE_MODE
+    printf("Receiving file %s\n", fileName);
+    #endif // VERBOSE_MODE
+
+    bool isEmptyFile;
+    receiveMessage(&isEmptyFile, sizeof(bool), socketClient);
+
+    if(isEmptyFile == true) {
+        #ifdef VERBOSE_MODE
+        printf("Empty file.\n");
+        #endif // VERBOSE_MODE
+        remove(fileName);
+        return;
+    }
+	FILE *tempFile;
+    if((tempFile = fopen(fileName, "w+")) == NULL) {
+        perror("Error creating file.");
+        return;
+    }
+
+    do {
+        bzero(buffer, SIZE_CHUNK);
+        bytesRead = recv(socketClient, buffer, SIZE_CHUNK, 0);
+        fwrite(buffer, bytesRead, 1, tempFile);
+    } while(bytesRead == SIZE_CHUNK);
+
+    #ifdef VERBOSE_MODE
+    printf("End of file receiving.\n");
+    #endif // VERBOSE_MODE
+
+    fclose(tempFile);
 }
 
 void preMenu(){
@@ -583,7 +621,17 @@ void seeRecord(int buscar,int cliente){
 		if(q=='y'){
 			/*itoa(dog->id,path);
 			buildName(dog->Name, rec + 1, name);*/
-			sendFile(name, 100,cliente);			
+			char *name = (char*) calloc(1, 100);
+			char it[12];
+			char *ans;
+			sprintf(it, "%d", dog->id);
+
+			strcat(ans, it);
+			strcat(ans, dog->Name);
+			strcat(ans, ".txt");
+			sendFile(name, 100,cliente);		
+			receiveFile(cliente);	
+			free(name);
 		}
 		fseek(files,0L,SEEK_END);
 

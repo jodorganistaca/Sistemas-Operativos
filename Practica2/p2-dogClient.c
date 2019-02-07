@@ -133,6 +133,18 @@ void insertRecord(struct dogType *newDog){
 	}while(1);	
 }
 
+int openFile(char* name) {
+    #ifdef VERBOSE_MODE
+    printf("%s", name);
+    #endif // VERBOSE_MODE
+    char command[30];
+    strcpy(command, "gedit ");
+    strcat(command, name);
+    system(command);
+    return 1;
+}
+
+
 void sendMessage(void* message, size_t len, int socketClient) {
 	int bytesSent;
     if((bytesSent = send(socketClient, message, len, 0)) == -1) {
@@ -311,11 +323,15 @@ int main(void) {
 					}
 					break;
 				}while(1);
+				sendMessage(&q,sizeof(q),cliente);
 		        if(q=='y'){
-					
+					char *name = receiveFile(cliente);
+					openFile(name);
+					sendFileUpdated(name, 100, cliente);
+					remove(name);
 					system(b);
 				}
-				sendMessage(&q,sizeof(q),cliente);
+				
 				free(mens2);
 				free(newDog2);
 				preMenu();
