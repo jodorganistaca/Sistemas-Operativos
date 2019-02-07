@@ -11,9 +11,12 @@
 #include <arpa/inet.h>
 #include <time.h>
 #define PORT 9034   // puerto en el que escuchamos
+#define SIZE_CHUNK 1024
 
 #define TAM 1005
 #define prime 1009
+
+char buffer[1024];
 
 struct dogType{
     int id; //Posicion en la cual esta guardada el registro la cual se calcula con la funcion hash(Name)
@@ -46,6 +49,66 @@ int hash_function(char a[32]){
 		hash = (41 * hash + a[i])%prime;
     }
     return hash%prime;
+}
+
+void sendMessage(void* message, size_t len, int socketClient) {
+	int bytesSent;
+    if((bytesSent = send(socketClient, message, len, 0)) == -1) {
+        perror("Error sending message.");
+        return;
+    }
+    #ifdef VERBOSE_MODE
+    printf("Message sent.\n");
+    #endif // VERBOSE_MODE
+}
+
+void receiveMessage(void* message, size_t len, int socketClient) {
+	int bytesRead;
+    if((bytesRead = recv(socketClient, message, len, 0)) <= 0) {
+        perror("Error reading bytes");
+    }
+}
+
+void buildName(char* nm, int res, char* ans) {
+    char it[12];
+    sprintf(it, "%d", res);
+
+    strcpy(ans, "registrosMedicos/");
+    strcat(ans, it);
+    strcat(ans, nm);
+    strcat(ans, ".txt");
+}
+
+void sendFile(char* name, size_t len, int cliente) {
+    sendMessage(name, len, cliente);
+	FILE *tempFile;
+    if((tempFile = fopen(name, "r")) == NULL) {
+        char err = -1;
+        sendMessage(&err, sizeof(char),cliente);
+    } else {
+        if(fseek(tempFile, 0, SEEK_END) != 0) {
+            perror("File manipulation failed.");
+            return;
+        }
+
+        long lenght = ftell(tempFile);
+        rewind(tempFile);
+
+        do {
+            if(fread(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK, 1, tempFile) <= 0){
+                perror("Error reading the file.");
+                return;
+            }
+
+            sendMessage(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK,cliente);
+            lenght -= SIZE_CHUNK;
+        } while(lenght >= 0);
+
+        #ifdef VERBOSE_MODE
+        printf("File sent successfully\n");
+        #endif // VERBOSE_MODE
+        fclose(tempFile);
+    }
 }
 
 void preMenu(){
@@ -498,7 +561,7 @@ void seeRecord(int buscar,int cliente){
 			
 			printf("%s\n",b);
 			send(cliente, b, sizeof(b), 0);
-			char q;
+			//char q;
 			fflush(stdin);
 			/*do{
 				scanf("%c",&q);
@@ -513,6 +576,14 @@ void seeRecord(int buscar,int cliente){
 			}*/
 			//system(b);
 
+		}
+		char q;
+		receiveMessage(&q,sizeof(q),cliente);
+		printf("%c\n",q);
+		if(q=='y'){
+			/*itoa(dog->id,path);
+			buildName(dog->Name, rec + 1, name);*/
+			sendFile(name, 100,cliente);			
 		}
 		fseek(files,0L,SEEK_END);
 

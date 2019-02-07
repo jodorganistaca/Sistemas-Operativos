@@ -1,11 +1,17 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <stdbool.h>
 
+#define SIZE_CHUNK 1024
 #define TAM 1005
 #define prime 1009
+
+char buffer[1024];
+char fileName[100];
 
 struct dogType{
     int id; //Posicion en la cual esta guardada el registro la cual se calcula con la funcion hash(Name)
@@ -127,6 +133,104 @@ void insertRecord(struct dogType *newDog){
 	}while(1);	
 }
 
+void sendMessage(void* message, size_t len, int socketClient) {
+	int bytesSent;
+    if((bytesSent = send(socketClient, message, len, 0)) == -1) {
+        perror("Error sending message.");
+        return;
+    }
+}
+
+void receiveMessage(void* message, size_t len, int socketClient) {
+	int bytesRead;
+    if((bytesRead = recv(socketClient, message, len, 0)) <= 0) {
+        perror("Error reading bytes");
+    }
+}
+
+char* receiveFile(int socketClient) {
+    #ifdef VERBOSE_MODE
+    printf("Reading the file: ");
+    #endif // VERBOSE_MODE
+    receiveMessage(&fileName, sizeof(fileName),socketClient);
+
+    #ifdef VERBOSE_MODE
+    printf("%s\n", fileName);
+    #endif // VERBOSE_MODE
+    int bytesRead;
+	FILE *file;
+    if((file = fopen(fileName, "w+")) == NULL) {
+        perror("Error creating file.");
+    }
+
+    do {
+        bzero(buffer, SIZE_CHUNK);
+        bytesRead = recv(socketClient, buffer, SIZE_CHUNK, 0);
+        if(buffer[0] == -1){
+            printf("Empty file\n");
+            break;
+        }
+        fwrite(buffer, bytesRead, 1, file);
+    } while(bytesRead == SIZE_CHUNK);
+
+    #ifdef VERBOSE_MODE
+    printf("End file read\n");
+    #endif // VERBOSE_MODE
+
+    fclose(file);
+
+    return fileName;
+}
+
+void sendFileUpdated(char *name, size_t len, int client) {
+    sendMessage(name, len, client);    
+
+    bool isEmptyFile = true;
+
+    char *content = NULL;
+    FILE *file;
+    if((file = fopen(name, "r")) == NULL) {
+        perror("File does not exists.");
+        sendMessage(&isEmptyFile, sizeof(bool), client);
+    } else {
+        if(fseek(file, 0, SEEK_END) != 0) {
+            perror("File manipulation failed.");
+            return;
+        }
+
+        //sendMessage(&isEmptyFile, sizeof(bool));
+
+        int lenght = ftell(file);
+        rewind(file);
+
+        if(fread(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK, 1, file) <= 0){
+            perror("Error reading the file. (out loop)");
+            sendMessage(&isEmptyFile, sizeof(bool), client);
+            return;
+        }
+
+        isEmptyFile = false;
+        sendMessage(&isEmptyFile, sizeof(bool), client);
+
+        sendMessage(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK, client);
+        lenght -= SIZE_CHUNK;
+
+        while(lenght >= 0) {
+            if(fread(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK, 1, file) <= 0){
+                perror("Error reading the file. (in loop)");
+                return;
+            }
+
+            sendMessage(buffer, (lenght < SIZE_CHUNK) ? lenght : SIZE_CHUNK, client);
+            lenght -= SIZE_CHUNK;
+        }
+
+        #ifdef VERBOSE_MODE
+        printf("File sent successfully\n");
+        #endif // VERBOSE_MODE
+    }
+}
+
 int main(void) {
 	struct sockaddr_in direccionServidor;
 	direccionServidor.sin_family = AF_INET;
@@ -208,8 +312,10 @@ int main(void) {
 					break;
 				}while(1);
 		        if(q=='y'){
+					
 					system(b);
 				}
+				sendMessage(&q,sizeof(q),cliente);
 				free(mens2);
 				free(newDog2);
 				preMenu();
