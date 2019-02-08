@@ -1,3 +1,4 @@
+
 /*
 ** selectserver.c -- servidor de chat multiusuario
 */
@@ -59,9 +60,9 @@ void sendMessage(void* message, size_t len, int socketClient) {
         perror("Error sending message.");
         return;
     }
-    #ifdef VERBOSE_MODE
+    //#ifdef VERBOSE_MODE
     printf("Message sent.\n");
-    #endif // VERBOSE_MODE
+    //#endif // VERBOSE_MODE
 }
 
 void receiveMessage(void* message, size_t len, int socketClient) {
@@ -82,6 +83,7 @@ void buildName(char* nm, int res, char* ans) {
 }
 
 void sendFile(char* name, size_t len, int cliente) {
+	printf("NAME: %s\n",name);
     sendMessage(name, len, cliente);
 	FILE *tempFile;
     if((tempFile = fopen(name, "r")) == NULL) {
@@ -209,8 +211,8 @@ int isFull(int buscar,char name[32]){
 		int ingresados;
 		fread(&ingresados,sizeof(int),1,files);
 		int totalRecords=(int)(((wr-sizeof(int))/sizeof(struct dogType)));
-		printf("Cantidad de registros:\t""%i\n",ingresados);
-		printf("Cantidad de estructuras:\t""%i\n",totalRecords);
+		/*printf("Cantidad de registros:\t""%i\n",ingresados);
+		printf("Cantidad de estructuras:\t""%i\n",totalRecords);*/
 
 		if (buscar>totalRecords) {
 			res=0;
@@ -389,10 +391,10 @@ int getFreeId(){
 	return fi;
 }
 
-
+//fi h
 void refresh(int count,int key){
 	int ingre, totalRecords;
-	printf("ENTRO A REFRESH\n");
+	printf("ingresando..\n");
 	FILE *files=fopen("dataDogs.dat","rb");
 	struct dogType* dog;
 	if(files==NULL){
@@ -405,8 +407,8 @@ void refresh(int count,int key){
 	    int ingresados;
     	fread(&ingresados,sizeof(int),1,files);
 		totalRecords=(int)(((wr-sizeof(int))/sizeof(struct dogType)));
-		printf("Cantidad de registros:\t""%i\n",ingresados);
-    	printf("Cantidad de estructuras:\t""%i\n",totalRecords);
+		/*printf("Cantidad de registros:\t""%i\n",ingresados);
+    	printf("Cantidad de estructuras:\t""%i\n",totalRecords);*/
 	}
 	if (count>totalRecords) {
 		printf("No se puede ingresar\n");
@@ -432,6 +434,9 @@ void refresh(int count,int key){
 			printf("Nombre cambiado%s\n",dog->Name);
 			fwrite(dog,sizeof(struct dogType),1,files2);
 			for (int rec = key; rec < totalRecords; rec++) {
+			    if(rec%1000000==0){
+					printf(".\n");
+				}
 			    fread(dog,sizeof(struct dogType),1,files);
 			    fwrite(dog,sizeof(struct dogType),1,files2);
 			}
@@ -468,15 +473,16 @@ int getDir(int code,char name[32]){
     	memset(dog->Name,0,32);
 
 		do {
-		  fseek(files,(sizeof(int)+(sizeof(struct dogType)*(code-1))),SEEK_SET);
-		  fread(dog,sizeof(struct dogType),1,files);
-		  //printf("nombreee %s\n",dog->Name);
-		  int temp = equals(dog->Name,name);
-		  if (temp==0 && dog->colision!=-1) {
-		    code=dog->colision;
-		  }else{
-		    res=1;
-		  }
+			fseek(files,(sizeof(int)+(sizeof(struct dogType)*(code-1))),SEEK_SET);
+			fread(dog,sizeof(struct dogType),1,files);
+			//printf("nombreee %s\n",dog->Name);
+			int temp = equals(dog->Name,name);
+			printf("temp: %i\n",temp);
+			if (temp==0 && dog->colision!=-1) {
+				code=dog->colision;
+			}else{
+				res=1;
+			}
 		} while(res!=1);
 
 		if (equals(dog->Name,name)==0) {
@@ -495,29 +501,37 @@ int getDir(int code,char name[32]){
 void insertRecord(struct dogType *newDog){
 	printRecord(newDog);
     int h = hash_function(newDog->Name);
+    printf("%i\n",h);
+   // preMenu();
     printf("ID ASISGNADO por el hash %s es %i\n",newDog->Name,h);
     newDog->existe=1;
     //En WriteTable si se llenan estos campos ya que se calculan
-    int gD=getDir(h,newDog->Name);
-    if (gD<0) {
+    h = getDir(h,newDog->Name);
+    printf("gD %i\n",h);
+    preMenu();
+    if (h<0) {
 		//printf("ENTRO A H<0\n");
-		h = gD;
+		//h = gD;
 		int fi=getFreeId();
+		printf("%i\n",fi);
+		//preMenu();
 		h=-h;
 		refresh(fi,h);
 		h=fi;
     }
     printf("ID ASIGNADO POR GETDIR %i\n",h);
     int m=isFull(h,newDog->Name);
+    printf("m%i\n",m);
+    preMenu();
     int b = 0;
     if(m != 0){
 		h--;
 		b = 1;
 	}
     while (m!=0) {
-      //printf("m = %i\n",m);
+      printf("m = %i\n",m);
       h=h+1005;
-      //printf("h + 1005 %i\n",h);
+      printf("h + 1005 %i\n",h);
       m=isFull(h,newDog->Name);
     }
     newDog->colision=-1;
@@ -526,14 +540,21 @@ void insertRecord(struct dogType *newDog){
 	}else{
 		newDog->id = h;
 	}
+    if(h<1005){
+		newDog->next = h + 1005;
+	}else{
+		newDog->next = h+1006;
+	}
     
-    newDog->next=h+1005;
+    printf("lo vas a ingresar are you sure?\n");
+    printf("%i\n",h);
+    preMenu();
     writeTable(h,newDog);
     printf("El id del registro%i\n",h);
     printf("registro hecho\n");
 }
 
-void seeRecord(int buscar,int cliente){
+void seeRecord(int  buscar,int cliente){
 	FILE *files=fopen("dataDogs.dat","rb");
 	struct dogType* dog=malloc(sizeof(struct dogType));
 	if(files==NULL){
@@ -582,37 +603,12 @@ void seeRecord(int buscar,int cliente){
 			printf("c= %s\n", c);
 			printf("cliente: %d\n", cliente);			
 			
-			/*char d[32];
-			itoa(dog->id,d);
-			printf("d= %s\n",d);
-			char buffer[100];
-			//strcat(b,path);
-			strcat(d,c);
-			FILE *files=fopen(d,"rb");
-			if(files==NULL){
-			}else{
-				fscanf(files,"%s",buffer);
-				send(cliente, buffer, sizeof(buffer), 0);
-				fclose(files);
-			}			
-			fclose(files);*/
 			
 			printf("%s\n",b);
 			send(cliente, b, sizeof(b), 0);
 			//char q;
 			fflush(stdin);
-			/*do{
-				scanf("%c",&q);
-				if(q!='y'&&q!='n'){
-					printf("opcion invalida, solo se permite y / n.\n");
-					continue;
-				}
-				break;
-			}while(1);
-            if(q=='y'){
-				system(b);
-			}*/
-			//system(b);
+			
 
 		}
 		char q;
@@ -623,13 +619,16 @@ void seeRecord(int buscar,int cliente){
 			buildName(dog->Name, rec + 1, name);*/
 			char *name = (char*) calloc(1, 100);
 			char it[12];
-			char *ans;
+			char *ans[12];
+			memset(ans,0,12);
 			sprintf(it, "%d", dog->id);
-
-			strcat(ans, it);
+			printf("it: %s\n", it);
+			strcat(ans, &it);
+			
 			strcat(ans, dog->Name);
 			strcat(ans, ".txt");
-			sendFile(name, 100,cliente);		
+			printf("nombre= %s\n",ans);
+			sendFile(&ans, 100,cliente);		
 			receiveFile(cliente);	
 			free(name);
 		}
@@ -745,27 +744,26 @@ int getKey(int code,char name[32]){
 
     	memset(dog->Name,0,32);
 
-    do {
-      fseek(files,(sizeof(int)+(sizeof(struct dogType)*(code-1))),SEEK_SET);
-      fread(dog,sizeof(struct dogType),1,files);
-      int temp = equals(dog->Name,name);
-      printf("%s %s\n", dog->Name, name);
-      printf("temp!!! %i\n", temp);
-      if (temp==0) {
-        code=dog->colision;
-      }else{
-        res=1;
-      }
-    } while(res!=1);
-			printf("id = %i\n",dog->id);
-			printf("existe = %i\n",dog->existe);
+		do {
+			fseek(files,(sizeof(int)+(sizeof(struct dogType)*(code-1))),SEEK_SET);
+			fread(dog,sizeof(struct dogType),1,files);
+			int temp = equals(dog->Name,name);
+			printf("%s %s\n", dog->Name, name);
+			printf("temp!!! %i\n", temp);
+			if (temp==0) {
+				code=dog->colision;
+			}else{
+				res=1;
+			}
+		} while(res!=1);
+		printf("id = %i\n",dog->id);
+		printf("existe = %i\n",dog->existe);
 
 		fclose(files);
 		free(dog);
-  }
-  printf("%i\n",code);
-  return code;
-
+	}
+	printf("%i\n",code);
+	return code;
 }
 
 void searchRecord(char n[32],int cliente){
@@ -846,7 +844,7 @@ void server(){
     }
     // enlazar
     myaddr.sin_family = AF_INET;
-    myaddr.sin_addr.s_addr = INADDR_ANY;
+    myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     myaddr.sin_port = htons(PORT);
     memset(&(myaddr.sin_zero), '\0', 8);
     if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) {
@@ -974,4 +972,3 @@ int main(void){
 	server();
     return 0;
 }
-
