@@ -161,14 +161,17 @@ void receiveMessage(void* message, size_t len, int socketClient) {
 }
 
 char* receiveFile(int socketClient) {
-    #ifdef VERBOSE_MODE
-    printf("Reading the file: ");
-    #endif // VERBOSE_MODE
+    //#ifdef VERBOSE_MODE
+    printf("Reading the file: \n");
+    //#endif // VERBOSE_MODE
+    printf("tam: %d client: %i \n",sizeof(fileName),socketClient);
     receiveMessage(&fileName, sizeof(fileName),socketClient);
 
-    #ifdef VERBOSE_MODE
-    printf("%s\n", fileName);
-    #endif // VERBOSE_MODE
+    //#ifdef VERBOSE_MODE
+    printf("Wee: %s\n", fileName);
+
+    printf("Okkk\n");
+    //#endif // VERBOSE_MODE
     int bytesRead;
 	FILE *file;
     if((file = fopen(fileName, "w+")) == NULL) {
@@ -185,9 +188,9 @@ char* receiveFile(int socketClient) {
         fwrite(buffer, bytesRead, 1, file);
     } while(bytesRead == SIZE_CHUNK);
 
-    #ifdef VERBOSE_MODE
+    //#ifdef VERBOSE_MODE
     printf("End file read\n");
-    #endif // VERBOSE_MODE
+    //#endif // VERBOSE_MODE
 
     fclose(file);
 
@@ -302,11 +305,13 @@ int main(void) {
 				struct dogType *petSee = malloc(sizeof(struct dogType));
 				int nb;
 				if((nb = recv(cliente, petSee, sizeof(struct dogType), 0)) > 0){
-					printRecord(petSee);
 					printf("%i\n",nb);
 					if(petSee->existe == 0){
+						printf("registro no existente\n");
 						free(petSee);
 						break;					
+					}else{
+						printRecord(petSee);
 					}
 				}
 				free(petSee);
@@ -329,7 +334,7 @@ int main(void) {
 					openFile(name);
 					sendFileUpdated(name, 100, cliente);
 					remove(name);
-					system(b);
+					//system(b);
 				}
 				
 				free(mens2);
@@ -369,8 +374,9 @@ int main(void) {
 				struct dogType *petR = malloc(sizeof(struct dogType));
 				int nbytes;
 				while((nbytes = recv(cliente, petR, sizeof(struct dogType), 0)) > 0){					
-					printf("%i\n",nbytes);
+					//printf("%i\n",nbytes);
 					if(petR->existe == 0){
+						printf("mascota no existente\n");
 						free(petR);
 						break;					
 					}else{

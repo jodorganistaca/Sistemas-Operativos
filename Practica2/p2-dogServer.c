@@ -755,6 +755,11 @@ int getKey(int code,char name[32]){
 			}else{
 				res=1;
 			}
+			if(code == -1){
+				res=1;
+			}
+			printf("code: %i\n", code);
+			preMenu();
 		} while(res!=1);
 		printf("id = %i\n",dog->id);
 		printf("existe = %i\n",dog->existe);
@@ -789,27 +794,35 @@ void searchRecord(char n[32],int cliente){
 		printf("estructuras encontradas %i\n",tam);
 		//printf("tam leido %li\n",wr);
 		h=hash_function(n);
-		//printf("%i\n",h);
+		printf("%i\n",h);
+		preMenu();
 		h=getKey(h,n);
-		//printf("%i\n",h);
-		//preMenu();
+		printf("get key: %i\n",h);
+		preMenu();
 		//h=h-1;
-		do {
-			if(h>1006){
-				fseek(fp,(sizeof(int)+(sizeof(struct dogType)*(h))),SEEK_SET);
-			}else{
-				fseek(fp,(sizeof(int)+(sizeof(struct dogType)*(h-1))),SEEK_SET);
-			}
-			fread(pet,sizeof(struct dogType),1,fp);
-			h+=1005;
-			if (pet->existe==1) {
-				printRecord(pet);
-				send(cliente, pet, sizeof(struct dogType), 0);
-			}
-		} while(pet->next==pet->id+1005 && h<=tam);
-		pet->existe = 0;
-		printRecord(pet);
-		send(cliente, pet, sizeof(struct dogType), 0);
+		if(h == -1){
+			pet->existe = 0;
+			printRecord(pet);
+			send(cliente, pet, sizeof(struct dogType), 0);			
+		}else{
+			do {
+				if(h>1006){
+					fseek(fp,(sizeof(int)+(sizeof(struct dogType)*(h))),SEEK_SET);
+				}else{
+					fseek(fp,(sizeof(int)+(sizeof(struct dogType)*(h-1))),SEEK_SET);
+				}
+				fread(pet,sizeof(struct dogType),1,fp);
+				h+=1005;
+				if (pet->existe==1) {
+					printRecord(pet);
+					send(cliente, pet, sizeof(struct dogType), 0);
+				}
+			} while(pet->next==pet->id+1005 && h<=tam);
+			pet->existe = 0;
+			printRecord(pet);
+			send(cliente, pet, sizeof(struct dogType), 0);
+		}		
+		
 		
 	}
     free(pet);
